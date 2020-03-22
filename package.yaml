@@ -1,34 +1,28 @@
-name:                text-editor
-version:             0.1.0.0
-github:              "deh4er/text-editor"
-license:             BSD3
-author:              "Denys Lytviak"
-maintainer:          "deh4er@gmail.com"
-copyright:           "BSD"
+name: text-editor
+version: 0.1.0.0
+author: Denys Lytviak
+github: deh4er/text-editor
+license: BSD3
+copyright: BSD
+maintainer: deh4er@gmail.com
+description: Please see the README on GitHub at <https://github.com/deh4er/text-editor#readme>
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/deh4er/text-editor#readme>
-
 dependencies:
+- vty
 - base >= 4.7 && < 5
+- text
 
 library:
   source-dirs: src
 
-executables:
-  text-editor-exe:
-    main:                Main.hs
-    source-dirs:         app
+tests:
+  text-editor-test:
+    source-dirs: test
+    main: Spec.hs
     ghc-options:
     - -threaded
     - -rtsopts
@@ -36,13 +30,14 @@ executables:
     dependencies:
     - text-editor
 
-tests:
-  text-editor-test:
-    main:                Spec.hs
-    source-dirs:         test
+executables:
+  text-editor-exe:
+    source-dirs: app
+    main: Main.hs
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - text-editor
+    - vty == 5.26

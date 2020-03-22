@@ -1,0 +1,62 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: cb0723e637c488d3c88afe3782dabe2eea485e4db9078a7550b54770ef4b43ba
+
+name:           text-editor
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/deh4er/text-editor#readme>
+homepage:       https://github.com/deh4er/text-editor#readme
+bug-reports:    https://github.com/deh4er/text-editor/issues
+author:         Denys Lytviak
+maintainer:     deh4er@gmail.com
+copyright:      BSD
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/deh4er/text-editor
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_text_editor
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable text-editor-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_text_editor
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , text-editor
+  default-language: Haskell2010
+
+test-suite text-editor-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_text_editor
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , text-editor
+  default-language: Haskell2010

@@ -1,11 +1,16 @@
 module Core.Event
-  ( closeEvent
+  ( Event(..)
+  , Key(..)
+  , closeEvent
   , keyEvent
   , keyEsc
   , keyChar
   , openEvent
-  , Event(..)
-  , Key(..)
+  , keyEnter
+  , keyUp
+  , keyDown
+  , keyLeft
+  , keyRight
   )
 where
 
@@ -21,18 +26,22 @@ closeEvent =
   EvClose
 
 
-keyEvent :: Char -> Event
-keyEvent c =
-  EvKey $ keyChar c
-
-
 openEvent :: FilePath -> Event
 openEvent = EvOpen
 
 
+keyEvent :: Key -> Event
+keyEvent =
+  EvKey
+
+
 data Key = KEsc
          | KChar Char
-
+         | KUp
+         | KDown
+         | KLeft
+         | KRight
+         | KEnter
 
 keyEsc =
   KEsc
@@ -42,3 +51,21 @@ keyChar =
   KChar
 
 
+keyUp =
+  KUp
+
+
+keyDown =
+  KDown
+
+
+keyLeft =
+  KLeft
+
+
+keyRight =
+  KRight
+
+
+keyEnter =
+  KEnter

@@ -99,11 +99,23 @@ moveCursor action buffer =
 
       (newRow, newCol) = getNewCursorPosition action (row, col)
 
-      rowsLength = length (bufContent buffer) - 1
-      croppedRow = crop 0 rowsLength newRow
+      rowsLength =
+        length (bufContent buffer)
 
-      croppedRowLength = length (bufContent buffer !! croppedRow) - 1
-      croppedCol = crop 0 croppedRowLength newCol
+      croppedRow =
+        if rowsLength == 0
+          then
+            0
+          else
+            crop 0 (rowsLength - 1) newRow
+
+      croppedRowLength = length (bufContent buffer !! croppedRow)
+      croppedCol =
+        if croppedRowLength == 0
+          then
+            0
+          else
+            crop 0 (croppedRowLength - 1) newCol
 
 getNewCursorPosition :: MoveAction -> (Row, Col) -> (Row, Col)
 getNewCursorPosition action (row, col) =
@@ -176,7 +188,7 @@ breakLine buffer = newBuffer
     newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
 
 
-breakDownAt :: Row -> Col -> [[a]] -> [[a]]
+breakDownAt :: Row -> Col -> [String] -> [String]
 breakDownAt row col [] = []
 breakDownAt 0 col (x:xs) = take col x : drop col x : xs
 breakDownAt row col (x:xs) = x : breakDownAt (row - 1) col xs

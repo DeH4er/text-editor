@@ -1,34 +1,34 @@
 module Core.Core
   ( App
+  , Cursor
+  , getRow
+  , getCol
   , initApp
   , handle
   , isAppClosed
   , getLines
-
-  , Event
-  , Key
-  , closeEvent
-  , keyEvent
-  , keyEsc
-  , keyChar
-  , openEvent
+  , getBuffer
   )
 where
 
 
 import Core.Event
 import Core.Fs
+import Core.Cursor
+import Core.Buffer
 
 
 data App = App
-  { appLines :: [String]
+  { appBuffer :: Buffer
   , appClose :: Bool
   }
 
 
 initApp :: App
-initApp =
-  App { appLines = [""], appClose = False }
+initApp = App
+        { appBuffer = emptyBuffer
+        , appClose = False
+        }
 
 
 handle :: Event -> App -> IO App
@@ -37,13 +37,25 @@ handle event app =
     EvClose ->
       return $ app { appClose = True }
 
-    EvKey (KChar c) ->
-      return $ app { appLines = newLines }
-        where
-          lines = appLines app
-          firstLine = head lines
-          updatedFirstLine = firstLine <> [c]
-          newLines = updatedFirstLine : tail lines
+    EvKey evKey ->
+      case evKey of
+        KChar c ->
+          return $ app { appBuffer = insertChar (appBuffer app) c }
+
+        KUp ->
+          return $ app { appBuffer = moveCursor (moveTop 1) (appBuffer app) }
+
+        KDown ->
+          return $ app { appBuffer = moveCursor (moveBottom 1) (appBuffer app) }
+
+        KLeft ->
+          return $ app { appBuffer = moveCursor (moveLeft 1) (appBuffer app) }
+
+        KRight ->
+          return $ app { appBuffer = moveCursor (moveRight 1) (appBuffer app) }
+
+        KEnter ->
+          return $ app { appBuffer = breakLine (appBuffer app) }
 
     EvOpen filepath -> do
       eitherContent <- loadFile filepath
@@ -53,13 +65,21 @@ handle event app =
           return app
 
         Right content ->
-          return $ app { appLines = lines content }
+          return $ app { appBuffer = loadContent buffer filepath (lines content) }
+            where
+              buffer :: Buffer
+              buffer = appBuffer app
 
 
 
 getLines :: App -> [String]
-getLines =
-  appLines
+getLines app =
+  getContent $ appBuffer app
+
+
+getBuffer :: App -> Buffer
+getBuffer =
+  appBuffer
 
 
 isAppClosed :: App -> Bool

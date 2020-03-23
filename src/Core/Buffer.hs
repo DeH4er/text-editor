@@ -86,45 +86,42 @@ loadContent buffer filepath content =
 
 moveCursor :: MoveAction -> Buffer -> Buffer
 moveCursor action buffer =
+  buffer { bufCursor = mkCursor croppedRow croppedCol }
+    where
+      cursor :: Cursor
+      cursor = bufCursor buffer
+
+      row :: Row
+      row = getRow cursor
+
+      col :: Col
+      col = getCol cursor
+
+      (newRow, newCol) = getNewCursorPosition action (row, col)
+
+      rowsLength = length (bufContent buffer) - 1
+      croppedRow = crop 0 rowsLength newRow
+
+      croppedRowLength = length (bufContent buffer !! croppedRow) - 1
+      croppedCol = crop 0 croppedRowLength newCol
+
+getNewCursorPosition :: MoveAction -> (Row, Col) -> (Row, Col)
+getNewCursorPosition action (row, col) =
   case action of
     MTop times ->
-      buffer
-        { bufCursor = mkCursor (cropRow (row - times)) col }
+      (row - times, col)
+
     MBottom times ->
-      buffer
-        { bufCursor = mkCursor (cropRow (row + times)) col }
+      (row + times, col)
+
     MLeft times ->
-      buffer
-        { bufCursor = mkCursor row (cropCol (col - times)) }
+      (row, col - times)
 
     MRight times ->
-      buffer
-        { bufCursor = mkCursor row (cropCol (col + times)) }
+      (row, col + times)
+
     MAt mrow mcol ->
-      buffer
-        { bufCursor = mkCursor mrow mcol }
-
-  where
-    cursor :: Cursor
-    cursor = bufCursor buffer
-
-    row :: Row
-    row = getRow cursor
-
-    col :: Col
-    col = getCol cursor
-
-    currentRowsLen :: Int
-    currentRowsLen = length (bufContent buffer) - 1
-
-    currentColsLen :: Int
-    currentColsLen = length (bufContent buffer !! row) - 1
-
-    cropRow :: Row -> Row
-    cropRow = crop 0 currentRowsLen
-
-    cropCol :: Col -> Col
-    cropCol = crop 0 currentColsLen
+      (mrow, mcol)
 
 
 insertChar :: Buffer -> Char -> Buffer

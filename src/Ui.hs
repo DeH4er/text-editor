@@ -1,21 +1,22 @@
 module Ui where
 
-import Graphics.Vty                  as Vty
+import Control.Monad (unless)
+import Graphics.Vty
 import qualified Core
-import qualified Core.Utils as Utils
+
 
 ui :: Vty -> Core.App -> IO ()
-ui vty app = if Core.isAppClosed app
-  then return ()
-  else do
-    let pic = makePicture app
-    update vty pic
+ui vty app =
+  unless (Core.isAppClosed app) $ do
+    update vty (makePicture app)
     e <- nextEvent vty
     case mapEvent e of
       Just mappedEvent -> do
         newApp <- Core.handle mappedEvent app
         ui vty newApp
-      Nothing -> ui vty app
+
+      Nothing ->
+        ui vty app
 
 
 mapEvent :: Event -> Maybe Core.Event
@@ -35,44 +36,42 @@ makePicture app = picForImage $ makeImage cursor lines
   lines = Core.getLines app
   buffer = Core.getBuffer app
   cursor = Core.getCursor buffer
-  -- col = Core.getCol cursor
-  -- row = Core.getRow cursor
-  -- attr = defAttr -- `withForeColor` green
-  -- cursorAttr = defAttr `withForeColor` black `withBackColor` white
-  -- mkImage = string attr
-  -- images = mkImage <$> lines
-  -- image = vertCat images
-  -- pic = picForImage image
 
 
 makeImage :: Core.Cursor -> [String] -> Image
-makeImage cursor lines = image
+makeImage cursor lines = linesImage row col lines
   where
-    col = Core.getCol cursor
+    row :: Core.Row
     row = Core.getRow cursor
-    attr = defAttr -- `withForeColor` green
-    cursorAttr = defAttr `withForeColor` black `withBackColor` white
-  -- mkImage = string attr
-  -- images = mkImage <$> lines
-  -- image = vertCat images
 
-    image :: Image
-    image = lineImage row col lines
+    col :: Core.Col
+    col = Core.getCol cursor
 
 
-lineImage :: Core.Row -> Core.Col -> [String] -> Image
-lineImage 0 col (x:xs) = lineCursorImage col x <-> lineImage (-1) col xs
-lineImage _ _ [] = emptyImage
-lineImage row col (x:xs) = string attr x <-> lineImage (row - 1) col xs
+linesImage :: Core.Row -> Core.Col -> [String] -> Image
+linesImage 0 col (x:xs) = lineCursorImage col x <-> linesImage (-1) col xs
+linesImage _ _ [] = emptyImage
+linesImage row col (x:xs) = string attr x <-> linesImage (row - 1) col xs
+
 
 lineCursorImage :: Core.Col -> String -> Image
-lineCursorImage col x = before <|> cursor <|> after
+lineCursorImage col x =
+  case x of
+    [] ->
+      char cursorAttr ' '
+    _ ->
+      before <|> cursor <|> after
   where
     before = string attr (take col x)
     cursor = char cursorAttr (x !! col)
     after = string attr (drop (col + 1) x)
 
-attr = defAttr -- `withForeColor` green
+
+attr :: Attr
+attr = defAttr
+
+
+cursorAttr :: Attr
 cursorAttr = defAttr `withForeColor` black `withBackColor` white
 
 
@@ -82,5 +81,3 @@ startUi app = do
   vty <- mkVty cfg
   ui vty app
   shutdown vty
-
-

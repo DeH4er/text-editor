@@ -1,11 +1,12 @@
 module Core.Buffer
   ( Buffer
   , MoveAction
+  , getContent
+  , getFilepath
   , emptyBuffer
   , moveCursor
   , loadContent
   , insertChar
-  , getContent
   , moveTop
   , moveBottom
   , moveLeft
@@ -67,6 +68,11 @@ data Buffer = Buffer
 
 getContent :: Buffer -> [String]
 getContent = bufContent
+
+
+getFilepath :: Buffer -> Maybe FilePath
+getFilepath = bufFilepath
+
 
 emptyBuffer :: Buffer
 emptyBuffer =

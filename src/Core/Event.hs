@@ -2,6 +2,7 @@ module Core.Event
   ( Event(..)
   , Key(..)
   , closeEvent
+  , saveEvent
   , keyEvent
   , keyEsc
   , keyChar
@@ -20,6 +21,11 @@ data Event = EvClose
            | EvKey Key
            | EvOpen FilePath
            | EvSave
+
+
+saveEvent :: Event
+saveEvent =
+  EvSave
 
 
 closeEvent :: Event

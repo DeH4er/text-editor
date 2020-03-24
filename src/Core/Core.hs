@@ -37,6 +37,16 @@ handle event app =
     EvClose ->
       return $ app { appClose = True }
 
+    EvSave -> do
+      case getFilepath (getBuffer app) of
+        Just filepath ->
+          writeFile filepath (unlines $ getLines app)
+
+        Nothing ->
+          return ()
+
+      return app
+
     EvKey evKey ->
       case evKey of
         KChar c ->

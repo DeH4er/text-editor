@@ -11,6 +11,7 @@ module Core.Event
   , keyDown
   , keyLeft
   , keyRight
+  , keyBackspace
   )
 where
 
@@ -42,6 +43,7 @@ data Key = KEsc
          | KLeft
          | KRight
          | KEnter
+         | KBackspace
 
 keyEsc =
   KEsc
@@ -69,3 +71,7 @@ keyRight =
 
 keyEnter =
   KEnter
+
+
+keyBackspace =
+  KBackspace

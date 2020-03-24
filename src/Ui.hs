@@ -26,6 +26,7 @@ mapEvent (EvKey KDown _) = Just . Core.keyEvent $ Core.keyDown
 mapEvent (EvKey KLeft _) = Just . Core.keyEvent $ Core.keyLeft
 mapEvent (EvKey KRight _) = Just . Core.keyEvent $ Core.keyRight
 mapEvent (EvKey KEnter _) = Just . Core.keyEvent $ Core.keyEnter
+mapEvent (EvKey KBS _) = Just . Core.keyEvent $ Core.keyBackspace
 mapEvent (EvKey KEsc _) = Just Core.closeEvent
 mapEvent _                           = Nothing
 

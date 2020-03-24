@@ -57,6 +57,9 @@ handle event app =
         KEnter ->
           return $ app { appBuffer = breakLine (appBuffer app) }
 
+        KBackspace ->
+          return $ app { appBuffer = deleteChar (appBuffer app) }
+
     EvOpen filepath -> do
       eitherContent <- loadFile filepath
 

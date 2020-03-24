@@ -13,6 +13,7 @@ module Core.Buffer
   , moveAt
   , breakLine
   , getCursor
+  , deleteChar
   )
 where
 
@@ -182,6 +183,39 @@ breakLine buffer = newBuffer
 
     newContent :: [String]
     newContent = breakDownAt row col content
+
+    newBuffer :: Buffer
+    newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
+
+
+deleteChar :: Buffer -> Buffer
+deleteChar buffer = newBuffer
+  where
+    cursor :: Cursor
+    cursor = bufCursor buffer
+
+    col :: Col
+    col = getCol cursor
+
+    row :: Row
+    row = getRow cursor
+
+    content :: [String]
+    content = bufContent buffer
+
+    newCursor :: Cursor
+    newCursor = mkCursor row (cropMin 0 (col - 1))
+
+    deleteCharLine :: String -> String
+    deleteCharLine line =
+      if col <= 0
+        then
+          line
+        else
+          removeAt (col - 1) line
+
+    newContent :: [String]
+    newContent = modifyAt row deleteCharLine content
 
     newBuffer :: Buffer
     newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}

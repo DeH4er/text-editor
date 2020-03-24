@@ -63,7 +63,12 @@ lineCursorImage col x =
       before <|> cursor <|> after
   where
     before = string attr (take col x)
-    cursor = char cursorAttr (x !! col)
+    cursor =
+      if col == length x
+        then
+          char cursorAttr ' '
+        else
+          char cursorAttr (x !! col)
     after = string attr (drop (col + 1) x)
 
 

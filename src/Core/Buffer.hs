@@ -115,7 +115,7 @@ moveCursor action buffer =
           then
             0
           else
-            crop 0 (croppedRowLength - 1) newCol
+            crop 0 croppedRowLength newCol
 
 getNewCursorPosition :: MoveAction -> (Row, Col) -> (Row, Col)
 getNewCursorPosition action (row, col) =
@@ -138,7 +138,6 @@ getNewCursorPosition action (row, col) =
 
 insertChar :: Buffer -> Char -> Buffer
 insertChar buffer char = newBuffer
-
   where
     cursor :: Cursor
     cursor = bufCursor buffer

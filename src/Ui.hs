@@ -20,6 +20,7 @@ ui vty app =
 
 
 mapEvent :: Event -> Maybe Core.Event
+mapEvent (EvKey (KChar s) [MCtrl]) = Just Core.saveEvent
 mapEvent (EvKey (KChar c) _) = Just . Core.keyEvent $ Core.keyChar c
 mapEvent (EvKey KUp _) = Just . Core.keyEvent $ Core.keyUp
 mapEvent (EvKey KDown _) = Just . Core.keyEvent $ Core.keyDown
@@ -28,7 +29,7 @@ mapEvent (EvKey KRight _) = Just . Core.keyEvent $ Core.keyRight
 mapEvent (EvKey KEnter _) = Just . Core.keyEvent $ Core.keyEnter
 mapEvent (EvKey KBS _) = Just . Core.keyEvent $ Core.keyBackspace
 mapEvent (EvKey KEsc _) = Just Core.closeEvent
-mapEvent _                           = Nothing
+mapEvent _ = Nothing
 
 
 makePicture :: Core.App -> Picture

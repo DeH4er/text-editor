@@ -169,6 +169,51 @@ insertChar buffer char = newBuffer
                        , bufContent = newContent }
 
 
+deleteChar :: Buffer -> Buffer
+deleteChar buffer = newBuffer
+  where
+    cursor :: Cursor
+    cursor = bufCursor buffer
+
+    col :: Col
+    col = getCol cursor
+
+    row :: Row
+    row = getRow cursor
+
+    content :: [String]
+    content = bufContent buffer
+
+    newCursor :: Cursor
+    newCursor =
+      if col <= 0
+        then
+          let newRow = cropMin 0 (row - 1)
+              newCol =
+                if row == 0
+                  then
+                    0
+                  else
+                    length (content !! newRow)
+           in mkCursor newRow newCol
+        else
+          mkCursor row (cropMin 0 (col - 1))
+
+    deleteCharLine :: String -> String
+    deleteCharLine line = removeAt (col - 1) line
+
+    newContent :: [String]
+    newContent =
+      if col <= 0
+        then
+          joinLines row content
+        else
+          modifyAt row deleteCharLine content
+
+    newBuffer :: Buffer
+    newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
+
+
 breakLine :: Buffer -> Buffer
 breakLine buffer = newBuffer
   where
@@ -194,40 +239,14 @@ breakLine buffer = newBuffer
     newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
 
 
-deleteChar :: Buffer -> Buffer
-deleteChar buffer = newBuffer
-  where
-    cursor :: Cursor
-    cursor = bufCursor buffer
-
-    col :: Col
-    col = getCol cursor
-
-    row :: Row
-    row = getRow cursor
-
-    content :: [String]
-    content = bufContent buffer
-
-    newCursor :: Cursor
-    newCursor = mkCursor row (cropMin 0 (col - 1))
-
-    deleteCharLine :: String -> String
-    deleteCharLine line =
-      if col <= 0
-        then
-          line
-        else
-          removeAt (col - 1) line
-
-    newContent :: [String]
-    newContent = modifyAt row deleteCharLine content
-
-    newBuffer :: Buffer
-    newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
-
-
 breakDownAt :: Row -> Col -> [String] -> [String]
-breakDownAt row col [] = []
+breakDownAt _ _ [] = []
 breakDownAt 0 col (x:xs) = take col x : drop col x : xs
 breakDownAt row col (x:xs) = x : breakDownAt (row - 1) col xs
+
+
+joinLines :: Row -> [String] -> [String]
+joinLines _ [] = []
+joinLines 1 [x1] = [x1]
+joinLines 1 (x1:x2:xs) = x1 <> x2 : xs
+joinLines row (x:xs) = x : joinLines (row - 1) xs

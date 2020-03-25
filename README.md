@@ -1,11 +1,10 @@
 # text-editor
 
-
 ## Ready for basic editing
  * Save to a particular file from editor
  * Open particular file in editor
  * UI follows a cursor
-
+ * Tests
 
 ## Proof of concept [Done]
  * Open file

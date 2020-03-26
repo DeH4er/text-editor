@@ -4,6 +4,7 @@ module Core.Cursor
   , Col
   , getCol
   , getRow
+  , getRowCol
   , mkCursor
   ) where
 
@@ -15,6 +16,10 @@ type Col = Int
 
 
 newtype Cursor = Cursor (Row, Col)
+
+
+getRowCol :: Cursor -> (Row, Col)
+getRowCol (Cursor p) = p
 
 
 getRow :: Cursor -> Row

@@ -104,7 +104,7 @@ moveCursor action buffer =
       col :: Col
       col = getCol cursor
 
-      (newRow, newCol) = getNewCursorPosition action (row, col)
+      (newRow, newCol) = applyMoveAction action (row, col)
 
       rowsLength =
         length (bufContent buffer)
@@ -124,8 +124,8 @@ moveCursor action buffer =
           else
             crop 0 croppedRowLength newCol
 
-getNewCursorPosition :: MoveAction -> (Row, Col) -> (Row, Col)
-getNewCursorPosition action (row, col) =
+applyMoveAction :: MoveAction -> (Row, Col) -> (Row, Col)
+applyMoveAction action (row, col) =
   case action of
     MTop times ->
       (row - times, col)

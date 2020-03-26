@@ -25,10 +25,11 @@ data App = App
 
 
 initApp :: App
-initApp = App
-        { appBuffer = emptyBuffer
-        , appClose = False
-        }
+initApp =
+  App
+  { appBuffer = emptyBuffer
+  , appClose = False
+  }
 
 
 handle :: FsService m => Event -> App -> m App

@@ -9,13 +9,17 @@ module Core.Cursor
   ) where
 
 
-type Row = Int
+type Row =
+  Int
 
 
-type Col = Int
+type Col =
+  Int
 
 
-newtype Cursor = Cursor (Row, Col)
+newtype Cursor =
+  Cursor (Row, Col)
+  deriving (Eq, Show)
 
 
 getRowCol :: Cursor -> (Row, Col)

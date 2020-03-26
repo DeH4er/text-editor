@@ -111,20 +111,88 @@ spec = do
 
   describe "Delete char" $ do
     it "shouldnt delete char at zero col and at zero row" $ do
-      pending
+      deleteChar testBuffer `contentShouldBe` (getContent testBuffer)
 
     it "should delete new line at zero col but not zero row" $ do
-      pending
+      let buf1 = moveCursor (moveAt 1 0) testBuffer
+      deleteChar buf1
+        `contentShouldBe`
+        [ "123456123456"
+        , "123456"
+        , "123456"
+        , "123456"
+        , "123456"
+        ]
 
     it "should delete char at middle of the line" $ do
-      pending
+      let buf1 = moveCursor (moveAt 1 1) testBuffer
+      deleteChar buf1
+        `contentShouldBe`
+        [ "123456"
+        , "23456"
+        , "123456"
+        , "123456"
+        , "123456"
+        , "123456"
+        ]
 
     it "should delete char at max col" $ do
-      pending
+      let buf1 = moveCursor (moveAt 1 1) testBuffer
+          buf2 = moveCursor (moveRight 100) buf1
+      deleteChar buf2
+        `contentShouldBe`
+        [ "123456"
+        , "12345"
+        , "123456"
+        , "123456"
+        , "123456"
+        , "123456"
+        ]
 
   describe "Break line" $ do
-    it "todo" $ do
-      pending
+    it "should break line for empty buffer" $ do
+      breakLine emptyBuffer
+        `contentShouldBe`
+        ["",""]
+
+    it "should break line at zero col" $ do
+      let buf1 = moveCursor (moveAt 2 0) testBuffer
+      breakLine buf1
+        `contentShouldBe`
+        [ "123456"
+        , "123456"
+        , ""
+        , "123456"
+        , "123456"
+        , "123456"
+        , "123456"
+        ]
+
+    it "should break line at middle of the line" $ do
+      breakLine cursorAt33
+        `contentShouldBe`
+        [ "123456"
+        , "123456"
+        , "123456"
+        , "123"
+        , "456"
+        , "123456"
+        , "123456"
+        ]
+
+    it "should break line at max col" $ do
+      let buf1 = moveCursor (moveAt 2 0) testBuffer
+          buf2 = moveCursor (moveRight 100) buf1
+      breakLine buf2
+        `contentShouldBe`
+        [ "123456"
+        , "123456"
+        , "123456"
+        , ""
+        , "123456"
+        , "123456"
+        , "123456"
+        ]
 
 
 cursorIsAt buffer (row, col) = getCursor buffer `shouldBe` mkCursor row col

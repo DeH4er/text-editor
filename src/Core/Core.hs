@@ -31,7 +31,7 @@ initApp = App
         }
 
 
-handle :: Event -> App -> IO App
+handle :: FsService m => Event -> App -> m App
 handle event app =
   case event of
     EvClose ->
@@ -40,10 +40,10 @@ handle event app =
     EvSave -> do
       case getFilepath (getBuffer app) of
         Just filepath ->
-          writeFile filepath (unlines $ getLines app)
+          saveFile filepath (unlines $ getLines app)
 
         Nothing ->
-          return ()
+          return . return $ ()
 
       return app
 

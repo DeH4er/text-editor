@@ -29,6 +29,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - text-editor
+    - hspec
 
 executables:
   text-editor-exe:

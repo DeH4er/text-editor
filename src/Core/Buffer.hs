@@ -67,11 +67,13 @@ data Buffer = Buffer
 
 
 getContent :: Buffer -> [String]
-getContent = bufContent
+getContent =
+  bufContent
 
 
 getFilepath :: Buffer -> Maybe FilePath
-getFilepath = bufFilepath
+getFilepath =
+  bufFilepath
 
 
 emptyBuffer :: Buffer
@@ -95,19 +97,12 @@ moveCursor :: MoveAction -> Buffer -> Buffer
 moveCursor action buffer =
   buffer { bufCursor = mkCursor croppedRow croppedCol }
     where
-      cursor :: Cursor
-      cursor = bufCursor buffer
-
-      row :: Row
-      row = getRow cursor
-
-      col :: Col
-      col = getCol cursor
-
-      (newRow, newCol) = applyMoveAction action (row, col)
-
-      rowsLength =
-        length (bufContent buffer)
+      croppedCol =
+        if croppedRowLength == 0
+          then
+            0
+          else
+            crop 0 croppedRowLength newCol
 
       croppedRow =
         if rowsLength == 0
@@ -116,13 +111,17 @@ moveCursor action buffer =
           else
             crop 0 (rowsLength - 1) newRow
 
-      croppedRowLength = length (bufContent buffer !! croppedRow)
-      croppedCol =
-        if croppedRowLength == 0
-          then
-            0
-          else
-            crop 0 croppedRowLength newCol
+      rowsLength =
+        length (bufContent buffer)
+
+      croppedRowLength =
+        length (bufContent buffer !! croppedRow)
+
+      (row, col) =
+        getRowCol $ bufCursor buffer
+
+      (newRow, newCol) =
+        applyMoveAction action (row, col)
 
 applyMoveAction :: MoveAction -> (Row, Col) -> (Row, Col)
 applyMoveAction action (row, col) =
@@ -146,43 +145,31 @@ applyMoveAction action (row, col) =
 insertChar :: Buffer -> Char -> Buffer
 insertChar buffer char = newBuffer
   where
-    cursor :: Cursor
-    cursor = bufCursor buffer
-
-    content :: [String]
-    content = bufContent buffer
-
-    row :: Row
-    row = getRow cursor
-
-    col :: Col
-    col = getCol cursor
+    newBuffer :: Buffer
+    newBuffer =
+      buffer { bufCursor = newCursor , bufContent = newContent }
 
     newCursor :: Cursor
-    newCursor = mkCursor row (col + 1)
+    newCursor =
+      mkCursor row (col + 1)
 
     newContent :: [String]
-    newContent = modifyAt row (insertAt col char) content
+    newContent =
+      modifyAt row (insertAt col char) content
 
-    newBuffer :: Buffer
-    newBuffer = buffer { bufCursor = newCursor
-                       , bufContent = newContent }
+    content :: [String]
+    content =
+      bufContent buffer
 
+    (row, col) =
+      getRowCol $ bufCursor buffer
 
 deleteChar :: Buffer -> Buffer
 deleteChar buffer = newBuffer
   where
-    cursor :: Cursor
-    cursor = bufCursor buffer
-
-    col :: Col
-    col = getCol cursor
-
-    row :: Row
-    row = getRow cursor
-
-    content :: [String]
-    content = bufContent buffer
+    newBuffer :: Buffer
+    newBuffer =
+      buffer { bufCursor = newCursor, bufContent = newContent}
 
     newCursor :: Cursor
     newCursor =
@@ -199,9 +186,6 @@ deleteChar buffer = newBuffer
         else
           mkCursor row (cropMin 0 (col - 1))
 
-    deleteCharLine :: String -> String
-    deleteCharLine line = removeAt (col - 1) line
-
     newContent :: [String]
     newContent =
       if col <= 0
@@ -210,43 +194,60 @@ deleteChar buffer = newBuffer
         else
           modifyAt row deleteCharLine content
 
-    newBuffer :: Buffer
-    newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
+    deleteCharLine :: String -> String
+    deleteCharLine =
+      removeAt $ col - 1
 
+    content :: [String]
+    content =
+      bufContent buffer
+
+    (row, col) =
+      getRowCol $ bufCursor buffer
 
 breakLine :: Buffer -> Buffer
 breakLine buffer = newBuffer
   where
-    cursor :: Cursor
-    cursor = bufCursor buffer
-
-    col :: Col
-    col = getCol cursor
-
-    row :: Row
-    row = getRow cursor
-
-    content :: [String]
-    content = bufContent buffer
+    newBuffer :: Buffer
+    newBuffer =
+      buffer { bufCursor = newCursor, bufContent = newContent}
 
     newCursor :: Cursor
-    newCursor = mkCursor (row + 1) 0
+    newCursor =
+      mkCursor (row + 1) 0
 
     newContent :: [String]
-    newContent = breakDownAt row col content
+    newContent =
+      breakDownAt row col content
 
-    newBuffer :: Buffer
-    newBuffer = buffer { bufCursor = newCursor, bufContent = newContent}
+    content :: [String]
+    content =
+      bufContent buffer
+
+    (row, col) =
+      getRowCol $ bufCursor buffer
 
 
 breakDownAt :: Row -> Col -> [String] -> [String]
-breakDownAt _ _ [] = []
-breakDownAt 0 col (x:xs) = take col x : drop col x : xs
-breakDownAt row col (x:xs) = x : breakDownAt (row - 1) col xs
+breakDownAt _ _ [] =
+  []
+
+breakDownAt 0 col (x:xs) =
+  take col x : drop col x : xs
+
+breakDownAt row col (x:xs) =
+  x : breakDownAt (row - 1) col xs
 
 
 joinLinesUp :: Row -> [String] -> [String]
-joinLinesUp _ [] = []
-joinLinesUp 1 [x1] = [x1]
-joinLinesUp 1 (x1:x2:xs) = x1 <> x2 : xs
-joinLinesUp row (x:xs) = x : joinLinesUp (row - 1) xs
+joinLinesUp _ [] =
+  []
+
+joinLinesUp _ [x1] =
+  [x1]
+
+joinLinesUp 1 (x1:x2:xs) =
+  x1 <> x2 : xs
+
+joinLinesUp row (x:xs) =
+  x : joinLinesUp (row - 1) xs

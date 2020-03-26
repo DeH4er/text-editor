@@ -3,12 +3,14 @@ module Ui where
 import Control.Monad (unless)
 import Graphics.Vty
 import qualified Core
+import qualified Core.Utils as Utils
 
 
 ui :: Vty -> Core.App -> IO ()
 ui vty app =
   unless (Core.isAppClosed app) $ do
-    update vty (makePicture app)
+    bounds <- displayBounds (outputIface vty)
+    update vty (makePicture app bounds)
     e <- nextEvent vty
     case mapEvent e of
       Just mappedEvent -> do
@@ -32,12 +34,25 @@ mapEvent (EvKey KEsc _) = Just Core.closeEvent
 mapEvent _ = Nothing
 
 
-makePicture :: Core.App -> Picture
-makePicture app = picForImage $ makeImage cursor lines
+makePicture :: Core.App -> DisplayRegion -> Picture
+makePicture app (width, height) = picForImage croppedImage
  where
   lines = Core.getLines app
   buffer = Core.getBuffer app
   cursor = Core.getCursor buffer
+  (row, col) = Core.getRowCol cursor
+  image = makeImage cursor lines
+  croppedXImage =
+    if col >= width then
+      translateX (width - col - 1) image
+    else
+      image
+
+  croppedImage =
+    if row >= height then
+      translateY (height - row - 1) croppedXImage
+    else
+      croppedXImage
 
 
 makeImage :: Core.Cursor -> [String] -> Image

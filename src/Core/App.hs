@@ -1,6 +1,5 @@
 module Core.App
   ( App
-  , Cursor
   , getRow
   , getCol
   , initApp

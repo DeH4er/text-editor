@@ -14,10 +14,10 @@ main = do
 
 openFile :: FilePath -> IO ()
 openFile filepath = do
-  newApp <- handle event initApp
+  newApp <- handle openFile initApp
   startUi newApp
     where
-      event = openEvent filepath
+      openFile = openEvent filepath
 
 
 openEmpty :: IO ()

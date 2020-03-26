@@ -206,7 +206,7 @@ deleteChar buffer = newBuffer
     newContent =
       if col <= 0
         then
-          joinLines row content
+          joinLinesUp row content
         else
           modifyAt row deleteCharLine content
 
@@ -245,8 +245,8 @@ breakDownAt 0 col (x:xs) = take col x : drop col x : xs
 breakDownAt row col (x:xs) = x : breakDownAt (row - 1) col xs
 
 
-joinLines :: Row -> [String] -> [String]
-joinLines _ [] = []
-joinLines 1 [x1] = [x1]
-joinLines 1 (x1:x2:xs) = x1 <> x2 : xs
-joinLines row (x:xs) = x : joinLines (row - 1) xs
+joinLinesUp :: Row -> [String] -> [String]
+joinLinesUp _ [] = []
+joinLinesUp 1 [x1] = [x1]
+joinLinesUp 1 (x1:x2:xs) = x1 <> x2 : xs
+joinLinesUp row (x:xs) = x : joinLinesUp (row - 1) xs

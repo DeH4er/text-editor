@@ -117,11 +117,12 @@ moveCursor action buffer =
       croppedRowLength =
         length (bufContent buffer !! croppedRow)
 
+      (newRow, newCol) =
+        applyMoveAction action (row, col)
+
       (row, col) =
         getRowCol $ bufCursor buffer
 
-      (newRow, newCol) =
-        applyMoveAction action (row, col)
 
 applyMoveAction :: MoveAction -> (Row, Col) -> (Row, Col)
 applyMoveAction action (row, col) =

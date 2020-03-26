@@ -1,4 +1,4 @@
-module Core.Core
+module Core.App
   ( App
   , Cursor
   , getRow

@@ -1,19 +1,16 @@
 module Core.App
   ( App
-  , getRow
-  , getCol
   , initApp
   , handle
-  , isAppClosed
   , getLines
   , getBuffer
+  , isAppClosed
   )
 where
 
 
 import Core.Event
 import Core.Fs
-import Core.Cursor
 import Core.Buffer
 
 
@@ -31,7 +28,11 @@ initApp =
   }
 
 
-handle :: FsService m => Event -> App -> m App
+handle
+  :: FsService m
+  => Event
+  -> App
+  -> m App
 handle event app =
   case event of
     EvClose ->
@@ -50,25 +51,25 @@ handle event app =
     EvKey evKey ->
       case evKey of
         KChar c ->
-          return $ app { appBuffer = insertChar (appBuffer app) c }
+          return $ app { appBuffer = insertChar (getBuffer app) c }
 
         KUp ->
-          return $ app { appBuffer = moveCursor (moveTop 1) (appBuffer app) }
+          return $ app { appBuffer = moveCursor (moveTop 1) (getBuffer app) }
 
         KDown ->
-          return $ app { appBuffer = moveCursor (moveBottom 1) (appBuffer app) }
+          return $ app { appBuffer = moveCursor (moveBottom 1) (getBuffer app) }
 
         KLeft ->
-          return $ app { appBuffer = moveCursor (moveLeft 1) (appBuffer app) }
+          return $ app { appBuffer = moveCursor (moveLeft 1) (getBuffer app) }
 
         KRight ->
-          return $ app { appBuffer = moveCursor (moveRight 1) (appBuffer app) }
+          return $ app { appBuffer = moveCursor (moveRight 1) (getBuffer app) }
 
         KEnter ->
-          return $ app { appBuffer = breakLine (appBuffer app) }
+          return $ app { appBuffer = breakLine (getBuffer app) }
 
         KBackspace ->
-          return $ app { appBuffer = deleteChar (appBuffer app) }
+          return $ app { appBuffer = deleteChar (getBuffer app) }
 
     EvOpen filepath -> do
       eitherContent <- loadFile filepath
@@ -78,11 +79,7 @@ handle event app =
           return app
 
         Right content ->
-          return $ app { appBuffer = loadContent buffer filepath (lines content) }
-            where
-              buffer :: Buffer
-              buffer = appBuffer app
-
+          return $ app { appBuffer = loadContent (getBuffer app) filepath (lines content) }
 
 
 getLines :: App -> [String]

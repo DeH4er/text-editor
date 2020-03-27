@@ -151,6 +151,7 @@ deleteChar buffer = newBuffer
     (row, col) =
       getRowCol $ bufCursor buffer
 
+
 breakLine :: Buffer -> Buffer
 breakLine buffer = newBuffer
   where
@@ -197,5 +198,3 @@ joinLinesUp 1 (x1:x2:xs) =
 
 joinLinesUp row (x:xs) =
   x : joinLinesUp (row - 1) xs
-
-

@@ -6,6 +6,7 @@ where
 import Test.Hspec
 import Core.Buffer
 import Core.Cursor
+import Core.MoveAction
 
 
 spec = do

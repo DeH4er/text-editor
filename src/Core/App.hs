@@ -12,6 +12,7 @@ where
 import Core.Event
 import Core.Fs
 import Core.Buffer
+import Core.MoveAction
 
 
 data App = App

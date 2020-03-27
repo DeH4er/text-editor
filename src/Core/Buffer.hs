@@ -1,62 +1,20 @@
 module Core.Buffer
   ( Buffer
-  , MoveAction
   , getContent
   , getFilepath
-  , emptyBuffer
-  , moveCursor
-  , loadContent
-  , insertChar
-  , moveTop
-  , moveBottom
-  , moveLeft
-  , moveRight
-  , moveAt
-  , breakLine
   , getCursor
+  , emptyBuffer
+  , loadContent
+  , moveCursor
+  , insertChar
+  , breakLine
   , deleteChar
   )
 where
 
 import Core.Cursor
 import Core.Utils
-
-
-data MoveAction = MTop Int
-                | MBottom Int
-                | MLeft Int
-                | MRight Int
-                | MAt Row Col
-
-
-getCursor :: Buffer -> Cursor
-getCursor =
-  bufCursor
-
-
-moveTop :: Int -> MoveAction
-moveTop =
-  MTop
-
-
-moveBottom :: Int -> MoveAction
-moveBottom =
-  MBottom
-
-
-moveLeft :: Int -> MoveAction
-moveLeft =
-  MLeft
-
-
-moveRight :: Int -> MoveAction
-moveRight =
-  MRight
-
-
-moveAt :: Row -> Col -> MoveAction
-moveAt =
-  MAt
+import Core.MoveAction
 
 
 data Buffer = Buffer
@@ -74,6 +32,11 @@ getContent =
 getFilepath :: Buffer -> Maybe FilePath
 getFilepath =
   bufFilepath
+
+
+getCursor :: Buffer -> Cursor
+getCursor =
+  bufCursor
 
 
 emptyBuffer :: Buffer
@@ -124,25 +87,6 @@ moveCursor action buffer =
         getRowCol $ bufCursor buffer
 
 
-applyMoveAction :: MoveAction -> (Row, Col) -> (Row, Col)
-applyMoveAction action (row, col) =
-  case action of
-    MTop times ->
-      (row - times, col)
-
-    MBottom times ->
-      (row + times, col)
-
-    MLeft times ->
-      (row, col - times)
-
-    MRight times ->
-      (row, col + times)
-
-    MAt mrow mcol ->
-      (mrow, mcol)
-
-
 insertChar :: Buffer -> Char -> Buffer
 insertChar buffer char = newBuffer
   where
@@ -164,6 +108,7 @@ insertChar buffer char = newBuffer
 
     (row, col) =
       getRowCol $ bufCursor buffer
+
 
 deleteChar :: Buffer -> Buffer
 deleteChar buffer = newBuffer
@@ -252,3 +197,5 @@ joinLinesUp 1 (x1:x2:xs) =
 
 joinLinesUp row (x:xs) =
   x : joinLinesUp (row - 1) xs
+
+

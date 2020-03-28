@@ -6,7 +6,8 @@ module Core.Cursor
   , getRow
   , getRowCol
   , mkCursor
-  ) where
+  )
+where
 
 
 type Row =
@@ -23,7 +24,8 @@ newtype Cursor =
 
 
 getRowCol :: Cursor -> (Row, Col)
-getRowCol (Cursor p) = p
+getRowCol (Cursor p) =
+  p
 
 
 getRow :: Cursor -> Row

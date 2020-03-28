@@ -3,6 +3,7 @@ module Core.BufferSpec
   )
 where
 
+
 import Test.Hspec
 import Core.Buffer
 import Core.Cursor

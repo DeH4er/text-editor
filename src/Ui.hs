@@ -22,7 +22,7 @@ ui vty app =
     e <- nextEvent vty
     case mapEvent e of
       Just mappedEvent -> do
-        newApp <- Core.handle mappedEvent app
+        newApp <- Core.handleIO mappedEvent app
         ui vty newApp
 
       Nothing ->

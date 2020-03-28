@@ -1,5 +1,5 @@
 module Core.Fs.Impl
-  ( FsService(..)
+  ( ioFsService
   )
 where
 
@@ -9,9 +9,11 @@ import Core.Fs.Data
 import Control.Exception
 
 
-instance FsService IO where
-  loadFile = loadFileImpl
-  saveFile = saveFileImpl
+ioFsService :: FsService IO
+ioFsService = FsService
+  { loadFile = loadFileImpl
+  , saveFile = saveFileImpl
+  }
 
 
 loadFileImpl :: FilePath -> IO (FsResult FileContent)

@@ -2,6 +2,7 @@ module Core.App
   ( App
   , initApp
   , handle
+  , handleIO
   , getLines
   , getBuffer
   , isAppClosed
@@ -30,11 +31,12 @@ initApp =
 
 
 handle
-  :: FsService m
-  => Event
+  :: Monad m
+  => FsService m
+  -> Event
   -> App
   -> m App
-handle event app =
+handle fsService event app =
   case event of
     EvClose ->
       return $ app { appClose = True }
@@ -42,7 +44,7 @@ handle event app =
     EvSave -> do
       case getFilepath (getBuffer app) of
         Just filepath ->
-          saveFile filepath (unlines $ getLines app)
+          saveFile fsService filepath (unlines $ getLines app)
 
         Nothing ->
           return . return $ ()
@@ -73,7 +75,7 @@ handle event app =
           return $ app { appBuffer = deleteChar (getBuffer app) }
 
     EvOpen filepath -> do
-      eitherContent <- loadFile filepath
+      eitherContent <- loadFile fsService filepath
 
       case eitherContent of
         Left _ ->
@@ -81,6 +83,13 @@ handle event app =
 
         Right content ->
           return $ app { appBuffer = loadContent (getBuffer app) filepath (lines content) }
+
+
+handleIO
+  :: Event
+  -> App
+  -> IO App
+handleIO = handle ioFsService
 
 
 getLines :: App -> [String]

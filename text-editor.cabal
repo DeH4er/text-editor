@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab4229cf1661423f2a278fe70fab3bd1ae0070336222f3c1c50b77e4f98231ed
+-- hash: f3a0c70c342ae72d5c436fe593aca7457aa5eb74b9be4f31b8196da61c41b80b
 
 name:           text-editor
 version:        0.1.0.0
@@ -66,6 +66,7 @@ test-suite text-editor-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Core.AppSpec
       Core.BufferSpec
       Paths_text_editor
   hs-source-dirs:

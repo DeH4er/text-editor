@@ -62,79 +62,77 @@ mapEvent _ =
 
 
 makePicture :: Core.App -> DisplayRegion -> Picture
-makePicture app (width, height) = picForImage croppedImage
- where
-  lines =
-    Core.getLines app
-
-  buffer =
-    Core.getBuffer app
-
-  cursor =
-    Core.getCursor buffer
-
-  (row, col) =
-    Core.getRowCol cursor
-
-  image =
-    makeImage cursor lines
-
-  croppedXImage =
-    if col >= width then
-      translateX (width - col - 1) image
-    else
-      image
-
-  croppedImage =
-    if row >= height then
-      translateY (height - row - 1) croppedXImage
-    else
-      croppedXImage
+makePicture app region =
+  Picture
+  { picCursor = NoCursor
+  , picLayers = getLayers app region
+  , picBackground = background
+  }
 
 
-makeImage :: Core.Cursor -> [String] -> Image
-makeImage cursor lines =
-  linesImage row col lines
+background :: Background
+background =
+  Background
+  { backgroundChar = ' '
+  , backgroundAttr = attr
+  }
 
+
+getLayers :: Core.App -> DisplayRegion -> [Image]
+getLayers app region =
+  cropImage app region <$> [cursorLayer app, textLayer app]
+
+
+textLayer :: Core.App -> Image
+textLayer app =
+  mconcat $ string attr <$> Core.getLines app
+
+
+cursorLayer :: Core.App -> Image
+cursorLayer app  = image
   where
-    row :: Core.Row
-    row = Core.getRow cursor
+    (row, col) =
+      Core.getRowCol . Core.getCursor . Core.getBuffer $ app
 
-    col :: Core.Col
-    col = Core.getCol cursor
+    cursorChar =
+      getCursorChar row col $ Core.getLines app
 
-
-linesImage :: Core.Row -> Core.Col -> [String] -> Image
-linesImage 0 col (x:xs) =
-  lineCursorImage col x <-> linesImage (-1) col xs
-
-linesImage _ _ [] =
-  emptyImage
-
-linesImage row col (x:xs) =
-  string attr x <-> linesImage (row - 1) col xs
+    image =
+      translate col row $ char cursorAttr cursorChar
 
 
-
-lineCursorImage :: Core.Col -> String -> Image
-lineCursorImage col x =
-  case x of
-    [] ->
-      char cursorAttr ' '
-    _ ->
-      before <|> cursor <|> after
+cropImage :: Core.App -> DisplayRegion -> Image -> Image
+cropImage app (width, height) image = croppedImage
   where
-    before =
-      string attr (take col x)
+    (row, col) =
+      Core.getRowCol . Core.getCursor . Core.getBuffer $ app
 
-    cursor =
-      if col == length x
-        then
-          char cursorAttr ' '
-        else
-          char cursorAttr (x !! col)
-    after =
-      string attr (drop (col + 1) x)
+    croppedXImage =
+      if col >= width then
+        translateX (width - col - 1) image
+      else
+        image
+
+    croppedImage =
+      if row >= height then
+        translateY (height - row - 1) croppedXImage
+      else
+        croppedXImage
+
+
+getCursorChar :: Core.Row -> Core.Col -> [String] -> Char
+getCursorChar _ _ [] =
+  ' '
+
+getCursorChar 0 col (x:xs) =
+  if col == length x
+     then
+      ' '
+     else
+      x !! col
+
+getCursorChar row col (x:xs) =
+  getCursorChar (row - 1) col xs
 
 
 attr :: Attr

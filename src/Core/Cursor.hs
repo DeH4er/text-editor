@@ -39,4 +39,3 @@ getCol (Cursor (_, col)) =
 mkCursor :: Row -> Col -> Cursor
 mkCursor row col =
   Cursor (row, col)
-

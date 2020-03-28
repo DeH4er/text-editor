@@ -53,6 +53,11 @@ handle fsService event app =
 
     EvKey evKey ->
       case evKey of
+        KChar '\t' ->
+          let buf1 = insertChar (getBuffer app) ' '
+              buf2 = insertChar buf1 ' '
+           in return $ app { appBuffer = buf2 }
+
         KChar c ->
           return $ app { appBuffer = insertChar (getBuffer app) c }
 

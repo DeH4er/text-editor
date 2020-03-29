@@ -3,7 +3,7 @@ module Core.Buffer
   , getContent
   , getFilepath
   , getCursor
-  , emptyBuffer
+  , empty
   , loadContent
   , moveCursor
   , insertChar
@@ -12,7 +12,7 @@ module Core.Buffer
   )
 where
 
-import Core.Cursor
+import qualified Core.Cursor as Cursor
 import Core.Utils
 import Core.MoveAction
 
@@ -20,9 +20,10 @@ import Core.MoveAction
 data Buffer =
   Buffer
   { bufFilepath :: Maybe FilePath
-  , bufCursor :: Cursor
+  , bufCursor :: Cursor.Cursor
   , bufContent :: [String]
   }
+  deriving (Show, Eq)
 
 
 getContent :: Buffer -> [String]
@@ -35,16 +36,16 @@ getFilepath =
   bufFilepath
 
 
-getCursor :: Buffer -> Cursor
+getCursor :: Buffer -> Cursor.Cursor
 getCursor =
   bufCursor
 
 
-emptyBuffer :: Buffer
-emptyBuffer =
+empty :: Buffer
+empty =
   Buffer
   { bufFilepath = Nothing
-  , bufCursor = mkCursor 0 0
+  , bufCursor = Cursor.empty
   , bufContent = [""]
   }
 
@@ -59,7 +60,7 @@ loadContent buffer filepath content =
 
 moveCursor :: MoveAction -> Buffer -> Buffer
 moveCursor action buffer =
-  buffer { bufCursor = mkCursor croppedRow croppedCol }
+  buffer { bufCursor = Cursor.new croppedRow croppedCol }
     where
       croppedCol =
         if croppedRowLength == 0
@@ -85,7 +86,7 @@ moveCursor action buffer =
         applyMoveAction action (row, col)
 
       (row, col) =
-        getRowCol $ bufCursor buffer
+        Cursor.getRowCol $ bufCursor buffer
 
 
 insertChar :: Buffer -> Char -> Buffer
@@ -95,9 +96,9 @@ insertChar buffer char = newBuffer
     newBuffer =
       buffer { bufCursor = newCursor , bufContent = newContent }
 
-    newCursor :: Cursor
+    newCursor :: Cursor.Cursor
     newCursor =
-      mkCursor row (col + 1)
+      Cursor.new row (col + 1)
 
     newContent :: [String]
     newContent =
@@ -108,7 +109,7 @@ insertChar buffer char = newBuffer
       bufContent buffer
 
     (row, col) =
-      getRowCol $ bufCursor buffer
+      Cursor.getRowCol $ bufCursor buffer
 
 
 deleteChar :: Buffer -> Buffer
@@ -118,7 +119,7 @@ deleteChar buffer = newBuffer
     newBuffer =
       buffer { bufCursor = newCursor, bufContent = newContent}
 
-    newCursor :: Cursor
+    newCursor :: Cursor.Cursor
     newCursor =
       if col <= 0
         then
@@ -129,9 +130,9 @@ deleteChar buffer = newBuffer
                     0
                   else
                     length (content !! newRow)
-           in mkCursor newRow newCol
+           in Cursor.new newRow newCol
         else
-          mkCursor row (cropMin 0 (col - 1))
+          Cursor.new row (cropMin 0 (col - 1))
 
     newContent :: [String]
     newContent =
@@ -150,7 +151,7 @@ deleteChar buffer = newBuffer
       bufContent buffer
 
     (row, col) =
-      getRowCol $ bufCursor buffer
+      Cursor.getRowCol $ bufCursor buffer
 
 
 breakLine :: Buffer -> Buffer
@@ -160,9 +161,9 @@ breakLine buffer = newBuffer
     newBuffer =
       buffer { bufCursor = newCursor, bufContent = newContent}
 
-    newCursor :: Cursor
+    newCursor :: Cursor.Cursor
     newCursor =
-      mkCursor (row + 1) 0
+      Cursor.new (row + 1) 0
 
     newContent :: [String]
     newContent =
@@ -173,10 +174,10 @@ breakLine buffer = newBuffer
       bufContent buffer
 
     (row, col) =
-      getRowCol $ bufCursor buffer
+      Cursor.getRowCol $ bufCursor buffer
 
 
-breakDownAt :: Row -> Col -> [String] -> [String]
+breakDownAt :: Cursor.Row -> Cursor.Col -> [String] -> [String]
 breakDownAt _ _ [] =
   []
 
@@ -187,7 +188,7 @@ breakDownAt row col (x:xs) =
   x : breakDownAt (row - 1) col xs
 
 
-joinLinesUp :: Row -> [String] -> [String]
+joinLinesUp :: Cursor.Row -> [String] -> [String]
 joinLinesUp _ [] =
   []
 

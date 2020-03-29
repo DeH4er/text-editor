@@ -12,13 +12,13 @@ where
 
 import Core.Event
 import Core.Fs
-import Core.Buffer
+import qualified Core.Buffer as Buffer
 import Core.MoveAction
 
 
 data App =
   App
-  { appBuffer :: Buffer
+  { appBuffer :: Buffer.Buffer
   , appClose :: Bool
   }
 
@@ -26,7 +26,7 @@ data App =
 initApp :: App
 initApp =
   App
-  { appBuffer = emptyBuffer
+  { appBuffer = Buffer.empty
   , appClose = False
   }
 
@@ -43,7 +43,7 @@ handle fsService event app =
       return $ app { appClose = True }
 
     EvSave -> do
-      case getFilepath (getBuffer app) of
+      case Buffer.getFilepath (getBuffer app) of
         Just filepath ->
           saveFile fsService filepath (unlines $ getLines app)
 
@@ -55,30 +55,30 @@ handle fsService event app =
     EvKey evKey ->
       case evKey of
         KChar '\t' ->
-          let buf1 = insertChar (getBuffer app) ' '
-              buf2 = insertChar buf1 ' '
+          let buf1 = Buffer.insertChar (getBuffer app) ' '
+              buf2 = Buffer.insertChar buf1 ' '
            in return $ app { appBuffer = buf2 }
 
         KChar c ->
-          return $ app { appBuffer = insertChar (getBuffer app) c }
+          return $ app { appBuffer = Buffer.insertChar (getBuffer app) c }
 
         KUp ->
-          return $ app { appBuffer = moveCursor (moveTop 1) (getBuffer app) }
+          return $ app { appBuffer = Buffer.moveCursor (moveTop 1) (getBuffer app) }
 
         KDown ->
-          return $ app { appBuffer = moveCursor (moveBottom 1) (getBuffer app) }
+          return $ app { appBuffer = Buffer.moveCursor (moveBottom 1) (getBuffer app) }
 
         KLeft ->
-          return $ app { appBuffer = moveCursor (moveLeft 1) (getBuffer app) }
+          return $ app { appBuffer = Buffer.moveCursor (moveLeft 1) (getBuffer app) }
 
         KRight ->
-          return $ app { appBuffer = moveCursor (moveRight 1) (getBuffer app) }
+          return $ app { appBuffer = Buffer.moveCursor (moveRight 1) (getBuffer app) }
 
         KEnter ->
-          return $ app { appBuffer = breakLine (getBuffer app) }
+          return $ app { appBuffer = Buffer.breakLine (getBuffer app) }
 
         KBackspace ->
-          return $ app { appBuffer = deleteChar (getBuffer app) }
+          return $ app { appBuffer = Buffer.deleteChar (getBuffer app) }
 
     EvOpen filepath -> do
       eitherContent <- loadFile fsService filepath
@@ -88,7 +88,7 @@ handle fsService event app =
           return app
 
         Right content ->
-          return $ app { appBuffer = loadContent (getBuffer app) filepath (lines content) }
+          return $ app { appBuffer = Buffer.loadContent (getBuffer app) filepath (lines content) }
 
 
 handleIO
@@ -100,10 +100,10 @@ handleIO = handle ioFsService
 
 getLines :: App -> [String]
 getLines app =
-  getContent $ appBuffer app
+  Buffer.getContent $ appBuffer app
 
 
-getBuffer :: App -> Buffer
+getBuffer :: App -> Buffer.Buffer
 getBuffer =
   appBuffer
 

@@ -3,6 +3,8 @@ module Ui where
 import Control.Monad (unless)
 import Graphics.Vty
 import qualified Core
+import qualified Core.Buffer as Buffer
+import qualified Core.Cursor as Cursor
 import qualified Core.Utils as Utils
 
 
@@ -92,7 +94,7 @@ cursorLayer :: Core.App -> Image
 cursorLayer app  = image
   where
     (row, col) =
-      Core.getRowCol . Core.getCursor . Core.getBuffer $ app
+      Cursor.getRowCol . Buffer.getCursor . Core.getBuffer $ app
 
     cursorChar =
       getCursorChar row col $ Core.getLines app
@@ -105,7 +107,7 @@ cropImage :: Core.App -> DisplayRegion -> Image -> Image
 cropImage app (width, height) image = croppedImage
   where
     (row, col) =
-      Core.getRowCol . Core.getCursor . Core.getBuffer $ app
+      Cursor.getRowCol . Buffer.getCursor . Core.getBuffer $ app
 
     croppedXImage =
       if col >= width then
@@ -120,7 +122,7 @@ cropImage app (width, height) image = croppedImage
         croppedXImage
 
 
-getCursorChar :: Core.Row -> Core.Col -> [String] -> Char
+getCursorChar :: Cursor.Row -> Cursor.Col -> [String] -> Char
 getCursorChar _ _ [] =
   ' '
 

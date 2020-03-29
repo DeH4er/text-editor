@@ -5,7 +5,8 @@ module Core.Cursor
   , getCol
   , getRow
   , getRowCol
-  , mkCursor
+  , new
+  , empty
   )
 where
 
@@ -38,6 +39,11 @@ getCol (Cursor (_, col)) =
   col
 
 
-mkCursor :: Row -> Col -> Cursor
-mkCursor row col =
+new :: Row -> Col -> Cursor
+new row col =
   Cursor (row, col)
+
+
+empty :: Cursor
+empty =
+  new 0 0

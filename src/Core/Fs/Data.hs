@@ -7,22 +7,22 @@ module Core.Fs.Data
 where
 
 
-type FileContent
-  = String
+type FileContent =
+  String
 
 
-type FsResult a
-  = Either FsErr a
+type FsResult a =
+  Either FsErr a
 
 
-data FsErr
-  = PathDoesNotExist
+data FsErr =
+  PathDoesNotExist
   | Unknown
   deriving (Show, Eq)
 
 
-data FsService m
-  = FsService
+data FsService m =
+  FsService
   { loadFile :: FilePath -> m (FsResult FileContent)
   , saveFile :: FilePath -> FileContent -> m (FsResult ())
   }

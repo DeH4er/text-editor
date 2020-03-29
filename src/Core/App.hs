@@ -16,7 +16,8 @@ import Core.Buffer
 import Core.MoveAction
 
 
-data App = App
+data App =
+  App
   { appBuffer :: Buffer
   , appClose :: Bool
   }

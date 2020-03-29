@@ -11,11 +11,12 @@ where
 
 import Core.Cursor
 
-data MoveAction = MTop Int
-                | MBottom Int
-                | MLeft Int
-                | MRight Int
-                | MAt Row Col
+data MoveAction =
+  MTop Int
+  | MBottom Int
+  | MLeft Int
+  | MRight Int
+  | MAt Row Col
 
 
 moveTop :: Int -> MoveAction

@@ -17,10 +17,11 @@ module Core.Event
 where
 
 
-data Event = EvClose
-           | EvKey Key
-           | EvOpen FilePath
-           | EvSave
+data Event =
+  EvClose
+  | EvKey Key
+  | EvOpen FilePath
+  | EvSave
 
 
 saveEvent :: Event
@@ -42,14 +43,15 @@ keyEvent =
   EvKey
 
 
-data Key = KEsc
-         | KChar Char
-         | KUp
-         | KDown
-         | KLeft
-         | KRight
-         | KEnter
-         | KBackspace
+data Key =
+  KEsc
+  | KChar Char
+  | KUp
+  | KDown
+  | KLeft
+  | KRight
+  | KEnter
+  | KBackspace
 
 
 keyEsc :: Key

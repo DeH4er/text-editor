@@ -17,7 +17,8 @@ import Core.Utils
 import Core.MoveAction
 
 
-data Buffer = Buffer
+data Buffer =
+  Buffer
   { bufFilepath :: Maybe FilePath
   , bufCursor :: Cursor
   , bufContent :: [String]

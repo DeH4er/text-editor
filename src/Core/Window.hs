@@ -67,7 +67,7 @@ empty =
   { winBuffer = Buffer.empty
   , winRect = Rect.empty
   , winMainCursor = Cursor.empty
-  , winCursors = []
+  , winCursors = [Cursor.new 1 0, Cursor.new 2 0]
   }
 
 

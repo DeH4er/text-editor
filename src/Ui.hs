@@ -88,7 +88,7 @@ background =
 
 getLayers :: Core.App -> [Image]
 getLayers app =
-  cropImage app <$> [cursorsLayer app, textLayer app]
+  cropImage app <$> cursorLayers app <> [textLayer app]
 
 
 textLayer :: Core.App -> Image
@@ -96,17 +96,20 @@ textLayer app =
   mconcat $ string attr <$> Core.getLines app
 
 
-cursorsLayer :: Core.App -> Image
-cursorsLayer app  = image
+cursorLayers :: Core.App -> [Image]
+cursorLayers app = doImage <$> (Window.getAllCursors . Core.getWindow $ app)
   where
-    (row, col) =
-      Cursor.getRowCol . Window.getMainCursor . Core.getWindow $ app
+    doImage :: Cursor.Cursor -> Image
+    doImage cursor = image
+      where
+        (row, col) =
+          Cursor.getRowCol cursor
 
-    cursorChar =
-      getCursorChar row col $ Core.getLines app
+        cursorChar =
+          getCursorChar row col $ Core.getLines app
 
-    image =
-      translate col row $ char cursorAttr cursorChar
+        image =
+          translate col row $ char cursorAttr cursorChar
 
 
 cropImage :: Core.App -> Image -> Image

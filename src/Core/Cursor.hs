@@ -7,6 +7,7 @@ module Core.Cursor
   , getRowCol
   , new
   , empty
+  , modify
   )
 where
 
@@ -22,6 +23,10 @@ type Col =
 newtype Cursor =
   Cursor (Row, Col)
   deriving (Eq, Show)
+
+
+modify :: ((Row, Col) -> (Row, Col)) -> Cursor -> Cursor
+modify f = Cursor . f . getRowCol
 
 
 getRowCol :: Cursor -> (Row, Col)

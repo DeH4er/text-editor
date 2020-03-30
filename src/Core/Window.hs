@@ -4,6 +4,7 @@ module Core.Window
   , getBuffer
   , getRect
   , getAllCursors
+  , getMainCursor
   , loadBuffer
   , setRect
   , resize
@@ -12,39 +13,52 @@ module Core.Window
   , translate
   , translateRow
   , translateCol
+  , moveCursors
   )
 where
 
 
 import qualified Core.Window.Rect as Rect
+import Core.Window.Rect (Rect)
+
 import qualified Core.Buffer as Buffer
+import Core.Buffer (Buffer)
+
 import qualified Core.Cursor as Cursor
+import Core.Cursor (Cursor)
+
 import Core.MoveAction
+import Core.Utils
 
 
 data Window
   = Window
-    { winBuffer :: Buffer.Buffer
-    , winRect :: Rect.Rect
-    , winMainCursor :: Cursor.Cursor
-    , winCursors :: [Cursor.Cursor]
+    { winBuffer :: Buffer
+    , winRect :: Rect
+    , winMainCursor :: Cursor
+    , winCursors :: [Cursor]
     }
     deriving (Show, Eq)
 
 
-getRect :: Window -> Rect.Rect
+getRect :: Window -> Rect
 getRect =
   winRect
 
 
-getBuffer :: Window -> Buffer.Buffer
+getBuffer :: Window -> Buffer
 getBuffer =
   winBuffer
 
 
-getAllCursors :: Window -> [Cursor.Cursor]
+getAllCursors :: Window -> [Cursor]
 getAllCursors window =
   winMainCursor window : winCursors window
+
+
+getMainCursor :: Window -> Cursor
+getMainCursor =
+  winMainCursor
 
 
 empty :: Window
@@ -57,7 +71,7 @@ empty =
   }
 
 
-loadBuffer :: Buffer.Buffer -> Window -> Window
+loadBuffer :: Buffer -> Window -> Window
 loadBuffer buffer window =
   window {winBuffer = buffer}
 
@@ -97,9 +111,75 @@ translateCol col =
   modifyRect $ Rect.translateCol col
 
 
-modifyRect :: (Rect.Rect -> Rect.Rect) -> Window -> Window
+modifyRect :: (Rect -> Rect) -> Window -> Window
 modifyRect f window =
   window {winRect = f . getRect $ window}
+
+
+modifyCursors :: ([Cursor] -> [Cursor]) -> Window -> Window
+modifyCursors f window =
+  window
+  { winCursors = tail newWinCursors
+  , winMainCursor = head newWinCursors
+  }
+    where
+      newWinCursors = f . getAllCursors $ window
+
+
+moveCursors :: MoveAction -> Window -> Window
+moveCursors action window = withNewRect
+    where
+      withNewRect :: Window
+      withNewRect = modifyRect (doMoveView $ getMainCursor withNewCursors) withNewCursors
+
+      withNewCursors :: Window
+      withNewCursors = modifyCursors doMoveCursors window
+
+      doMoveCursors :: [Cursor] -> [Cursor]
+      doMoveCursors cursors =
+        moveCursor action content <$> cursors
+
+      doMoveView :: Cursor -> Rect -> Rect
+      doMoveView cursor rect = Rect.new newRow newCol rWidth rHeight
+        where
+          newRow
+            | row >= (rRow + rHeight - 1) =
+              row - rHeight + 1
+            | row < rRow =
+              row
+            | otherwise =
+              rRow
+
+          newCol
+            | col >= (rCol + rWidth - 1) =
+              col - rWidth + 1
+            | col < rCol =
+              col
+            | otherwise =
+              rCol
+
+          rRow = Rect.getRow rect
+          rCol = Rect.getCol rect
+          rWidth = Rect.getWidth rect
+          rHeight = Rect.getHeight rect
+          (row, col) = Cursor.getRowCol cursor
+
+      content :: [String]
+      content = Buffer.getContent . getBuffer $ window
+
+
+moveCursor :: MoveAction -> [String] -> Cursor -> Cursor
+moveCursor action content cursor = cropped
+    where
+      cropped = cropCursor content `Cursor.modify` moved
+      moved = applyMoveAction action `Cursor.modify` cursor
+
+
+cropCursor :: [String] -> (Cursor.Row, Cursor.Col) -> (Cursor.Row, Cursor.Col)
+cropCursor content (row, col) = (newRow, newCol)
+  where
+    newRow = crop 0 (length content - 1) row
+    newCol = crop 0 (length $ content !! newRow) col
 
 -- moveCursor :: MoveAction -> Window -> Window
 -- moveCursor action window =

@@ -6,6 +6,8 @@ module Core.App
   , getLines
   , getBuffer
   , isAppClosed
+  , getWindow
+  , onResize
   )
 where
 
@@ -13,20 +15,26 @@ where
 import Core.Event
 import Core.Fs
 import qualified Core.Buffer as Buffer
-import Core.MoveAction
 
+import qualified Core.Window as Window
+import Core.Window (Window)
+
+import Core.MoveAction
 
 data App =
   App
   { appBuffer :: Buffer.Buffer
+  , appWindow :: Window
   , appClose :: Bool
   }
+  deriving (Show)
 
 
 initApp :: App
 initApp =
   App
   { appBuffer = Buffer.empty
+  , appWindow = Window.empty
   , appClose = False
   }
 
@@ -63,16 +71,16 @@ handle fsService event app =
           return $ app { appBuffer = Buffer.insertChar (getBuffer app) c }
 
         KUp ->
-          return $ app { appBuffer = Buffer.moveCursor (moveTop 1) (getBuffer app) }
+          return $ app { appWindow = Window.moveCursors (moveTop 1) (getWindow app) }
 
         KDown ->
-          return $ app { appBuffer = Buffer.moveCursor (moveBottom 1) (getBuffer app) }
+          return $ app { appWindow = Window.moveCursors (moveBottom 1) (getWindow app) }
 
         KLeft ->
-          return $ app { appBuffer = Buffer.moveCursor (moveLeft 1) (getBuffer app) }
+          return $ app { appWindow = Window.moveCursors (moveLeft 1) (getWindow app) }
 
         KRight ->
-          return $ app { appBuffer = Buffer.moveCursor (moveRight 1) (getBuffer app) }
+          return $ app { appWindow = Window.moveCursors (moveRight 1) (getWindow app) }
 
         KEnter ->
           return $ app { appBuffer = Buffer.breakLine (getBuffer app) }
@@ -88,7 +96,8 @@ handle fsService event app =
           return app
 
         Right content ->
-          return $ app { appBuffer = Buffer.loadContent (getBuffer app) filepath (lines content) }
+          let buffer = Buffer.loadContent (getBuffer app) filepath (lines content)
+            in return $ app { appWindow = Window.loadBuffer buffer $ getWindow app}
 
 
 handleIO
@@ -100,12 +109,21 @@ handleIO = handle ioFsService
 
 getLines :: App -> [String]
 getLines app =
-  Buffer.getContent $ appBuffer app
+  Buffer.getContent . Window.getBuffer . getWindow $ app
 
 
 getBuffer :: App -> Buffer.Buffer
 getBuffer =
   appBuffer
+
+
+getWindow :: App -> Window
+getWindow =
+  appWindow
+
+
+onResize :: (Int, Int) -> App -> App
+onResize (width, height) app = app { appWindow = Window.resize width height $ getWindow app }
 
 
 isAppClosed :: App -> Bool

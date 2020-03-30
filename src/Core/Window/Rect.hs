@@ -10,6 +10,10 @@ module Core.Window.Rect
   , translate
   , translateRow
   , translateCol
+  , getRow
+  , getCol
+  , getWidth
+  , getHeight
   )
 where
 
@@ -33,6 +37,22 @@ data Rect
     , rectHeight :: Height
     }
     deriving (Show, Eq)
+
+
+getCol :: Rect -> Cursor.Col
+getCol = rectCol
+
+
+getRow :: Rect -> Cursor.Row
+getRow = rectRow
+
+
+getWidth :: Rect -> Width
+getWidth = rectWidth
+
+
+getHeight :: Rect -> Height
+getHeight = rectHeight
 
 
 empty :: Rect

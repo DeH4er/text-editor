@@ -4,6 +4,11 @@ import Control.Monad (unless)
 import Graphics.Vty
 import qualified Core
 import qualified Core.Buffer as Buffer
+
+import qualified Core.Window as Window
+import qualified Core.Window.Rect as Rect
+import Core.Window (Window)
+
 import qualified Core.Cursor as Cursor
 import qualified Core.Utils as Utils
 
@@ -17,10 +22,11 @@ startUi app = do
 
 
 ui :: Vty -> Core.App -> IO ()
-ui vty app =
-  unless (Core.isAppClosed app) $ do
+ui vty _app =
+  unless (Core.isAppClosed _app) $ do
     bounds <- displayBounds (outputIface vty)
-    update vty (makePicture app bounds)
+    let app = Core.onResize bounds _app
+    update vty (makePicture app)
     e <- nextEvent vty
     case mapEvent e of
       Just mappedEvent -> do
@@ -63,11 +69,11 @@ mapEvent _ =
   Nothing
 
 
-makePicture :: Core.App -> DisplayRegion -> Picture
-makePicture app region =
+makePicture :: Core.App -> Picture
+makePicture app =
   Picture
   { picCursor = NoCursor
-  , picLayers = getLayers app region
+  , picLayers = getLayers app
   , picBackground = background
   }
 
@@ -80,9 +86,9 @@ background =
   }
 
 
-getLayers :: Core.App -> DisplayRegion -> [Image]
-getLayers app region =
-  cropImage app region <$> [cursorLayer app, textLayer app]
+getLayers :: Core.App -> [Image]
+getLayers app =
+  cropImage app <$> [cursorsLayer app, textLayer app]
 
 
 textLayer :: Core.App -> Image
@@ -90,11 +96,11 @@ textLayer app =
   mconcat $ string attr <$> Core.getLines app
 
 
-cursorLayer :: Core.App -> Image
-cursorLayer app  = image
+cursorsLayer :: Core.App -> Image
+cursorsLayer app  = image
   where
     (row, col) =
-      Cursor.getRowCol . Buffer.getCursor . Core.getBuffer $ app
+      Cursor.getRowCol . Window.getMainCursor . Core.getWindow $ app
 
     cursorChar =
       getCursorChar row col $ Core.getLines app
@@ -103,23 +109,19 @@ cursorLayer app  = image
       translate col row $ char cursorAttr cursorChar
 
 
-cropImage :: Core.App -> DisplayRegion -> Image -> Image
-cropImage app (width, height) image = croppedImage
+cropImage :: Core.App -> Image -> Image
+cropImage app image = cropped
   where
-    (row, col) =
-      Cursor.getRowCol . Buffer.getCursor . Core.getBuffer $ app
+    cropped = crop rWidth rHeight translated
+    translated = translate (-rCol) (-rRow) image
 
-    croppedXImage =
-      if col >= width then
-        translateX (width - col - 1) image
-      else
-        image
+    window = Core.getWindow app
+    rect = Window.getRect window
 
-    croppedImage =
-      if row >= height then
-        translateY (height - row - 1) croppedXImage
-      else
-        croppedXImage
+    rRow = Rect.getRow rect
+    rCol = Rect.getCol rect
+    rWidth = Rect.getWidth rect
+    rHeight = Rect.getHeight rect
 
 
 getCursorChar :: Cursor.Row -> Cursor.Col -> [String] -> Char

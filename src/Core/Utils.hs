@@ -37,3 +37,8 @@ removeAt :: Int -> [a] -> [a]
 removeAt _ [] = []
 removeAt 0 (x:xs) = xs
 removeAt i (x:xs) = x : removeAt (i - 1) xs
+
+
+inRange :: Int -> Int -> Int -> Bool
+inRange min max val =
+  val >= min && val <= max

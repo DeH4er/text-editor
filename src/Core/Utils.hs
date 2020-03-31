@@ -5,6 +5,7 @@ module Core.Utils
   , cropMin
   , removeAt
   , mapIndex
+  , mapCollect
   )
   where
 
@@ -51,3 +52,11 @@ mapIndex = doMap 0
     doMap :: Int -> (Int -> a -> b) -> [a] -> [b]
     doMap _ _ [] = []
     doMap i f (x:xs) = f i x : doMap (i + 1) f xs
+
+
+mapCollect :: c -> (c -> a -> (b, c)) -> [a] -> [b]
+mapCollect _ _ [] = []
+mapCollect item f (x:xs) =
+  b : mapCollect newItem f xs
+    where
+      (b, newItem) = f item x

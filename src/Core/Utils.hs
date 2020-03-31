@@ -6,6 +6,7 @@ module Core.Utils
   , removeAt
   , mapIndex
   , mapCollect
+  , removeDuplicates
   )
   where
 
@@ -60,3 +61,12 @@ mapCollect item f (x:xs) =
   b : mapCollect newItem f xs
     where
       (b, newItem) = f item x
+
+
+removeDuplicates :: Eq a => [a] -> [a]
+removeDuplicates = foldl doRemove []
+  where
+    doRemove :: Eq a => [a] -> a -> [a]
+    doRemove seen x
+      | x `elem` seen = seen
+      | otherwise = seen ++ [x]

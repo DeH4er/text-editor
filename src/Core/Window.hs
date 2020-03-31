@@ -29,8 +29,8 @@ moveCursors action =
   fitViewByMainCursor . modifyCursorsByContent (doMoveCursors action)
     where
       doMoveCursors :: MoveAction -> [String] -> [Cursor] -> [Cursor]
-      doMoveCursors action content cursors =
-        moveCursor action content <$> cursors
+      doMoveCursors action content =
+        filterSameCursors . fmap (moveCursor action content)
 
 
 insertChar :: Char -> Window -> Window
@@ -39,7 +39,7 @@ insertChar char =
     where
       withMovedCursors :: Window -> Window
       withMovedCursors =
-        modifyGroupedCursors moveGroupedCursors
+        modifyGroupedCursors (filterSameGroupedCursors . moveGroupedCursors)
 
       withInsertedChar :: Window -> Window
       withInsertedChar =
@@ -82,7 +82,7 @@ breakLine =
 
       withMovedCursors :: Window -> Window
       withMovedCursors =
-        modifyGroupedCursors doMove
+        modifyGroupedCursors (filterSameGroupedCursors . doMove)
 
       doBreak :: [[Cursor]] -> [String] -> [String]
       doBreak [] content = content
@@ -136,7 +136,7 @@ deleteChar =
         joinDeleteUp cursor $ deleteCharRow cursors content
 
       doMove :: [String] -> [[Cursor]] -> [[Cursor]]
-      doMove content = mapCollect 0 (moveRowCursors content)
+      doMove content = filterSameGroupedCursors . mapCollect 0 (moveRowCursors content)
 
       moveRowCursors :: [String] -> Int -> [Cursor] -> ([Cursor], Int)
       moveRowCursors content zeroColCount all@(firstCursor:cursors)
@@ -170,6 +170,14 @@ deleteChar =
             newCol = length $ content !! (row - zeroColCount - 1)
             row = Cursor.getRow cursor
 
+
+
+filterSameGroupedCursors :: [[Cursor]] -> [[Cursor]]
+filterSameGroupedCursors = fmap removeDuplicates
+
+
+filterSameCursors :: [Cursor] -> [Cursor]
+filterSameCursors = removeDuplicates
 
 modifyGroupedCursors :: ([[Cursor]] -> [[Cursor]]) -> Window -> Window
 modifyGroupedCursors f =

@@ -1,6 +1,7 @@
 module Core.Window
   ( moveCursors
   , insertChar
+  , breakLine
   , module Core.Window.Data
   )
 where
@@ -70,9 +71,60 @@ insertChar char =
         (row, col + i + 1)
 
 
+breakLine :: Window -> Window
+breakLine =
+  fitViewByMainCursor . withMovedCursors . withBreakedLines
+    where
+      withBreakedLines :: Window -> Window
+      withBreakedLines =
+        modifyContentByReversedGroupedCursors doBreak
+
+      withMovedCursors :: Window -> Window
+      withMovedCursors =
+        modifyGroupedCursors doMove
+
+      doBreak :: [[Cursor]] -> [String] -> [String]
+      doBreak [] content = content
+      doBreak (rowCursors : others) content =
+        breakRow rowCursors $ doBreak others content
+
+      breakRow :: [Cursor] -> [String] -> [String]
+      breakRow [] content = content
+      breakRow (cursor:cursors) content =
+        breakDownAt row col $ breakRow cursors content
+          where
+            (row, col) = Cursor.getRowCol cursor
+
+      doMove :: [[Cursor]] -> [[Cursor]]
+      doMove =
+        mapIndex moveAtRow
+
+      moveAtRow :: Int -> [Cursor] -> [Cursor]
+      moveAtRow i =
+        mapIndex $ moveSingleCursor i
+
+      moveSingleCursor :: Int -> Int -> Cursor -> Cursor
+      moveSingleCursor i j =
+        Cursor.modify doModify
+          where
+            doModify :: (Cursor.Row, Cursor.Col) -> (Cursor.Row, Cursor.Col)
+            doModify (row, col) =
+              (row + i + j + 1, 0)
+
+
 modifyGroupedCursors :: ([[Cursor]] -> [[Cursor]]) -> Window -> Window
 modifyGroupedCursors f =
   modifyCursors $ concat . f . groupCursors
+
+
+modifyContentByGroupedCursors :: ([[Cursor]] -> [String] -> [String]) -> Window -> Window
+modifyContentByGroupedCursors f window =
+  modifyContent (f $ getGroupedCursors window) window
+
+
+modifyContentByReversedGroupedCursors :: ([[Cursor]] -> [String] -> [String]) -> Window -> Window
+modifyContentByReversedGroupedCursors f window =
+  modifyContent (f $ getGroupedCursors window) window
 
 
 fitViewByMainCursor :: Window -> Window
@@ -125,6 +177,11 @@ getGroupedCursors =
   groupCursors . getAllCursors
 
 
+getGroupedCursorsReversed :: Window -> [[Cursor]]
+getGroupedCursorsReversed =
+  groupCursorsReversed . getAllCursors
+
+
 groupCursors :: [Cursor] -> [[Cursor]]
 groupCursors =
   sortGroupedCursors . doGroupCursors
@@ -143,6 +200,11 @@ groupCursors =
             byRows :: Cursor -> Cursor -> Bool
             byRows cursor1 cursor2 =
               Cursor.getRow cursor1 == Cursor.getRow cursor2
+
+
+groupCursorsReversed :: [Cursor] -> [[Cursor]]
+groupCursorsReversed =
+  reverse . fmap reverse . groupCursors
 
 
 moveCursor :: MoveAction -> [String] -> Cursor -> Cursor
@@ -165,3 +227,16 @@ cropCursor content (row, col) =
 
       newCol =
         crop 0 (length $ content !! newRow) col
+
+
+breakDownAt :: Cursor.Row -> Cursor.Col -> [String] -> [String]
+breakDownAt _ _ [] =
+  []
+
+breakDownAt 0 col (x:xs) =
+  take col x : drop col x : xs
+
+breakDownAt row col (x:xs) =
+  x : breakDownAt (row - 1) col xs
+
+

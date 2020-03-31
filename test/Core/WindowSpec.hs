@@ -18,7 +18,7 @@ spec = do
 
   describe "Resize and translate window" $ do
     it "should resize window" $ do
-      Window.getRect (Window.setRect 0 0 20 20 testWindow)
+      Window.getRect (Window.setRect (Rect.new 0 0 20 20) testWindow)
         `shouldBe` Rect.new 0 0 20 20
 
   describe "Move window cursor" $ do
@@ -28,7 +28,7 @@ spec = do
 
 testWindow :: Window.Window
 testWindow =
-  Window.setRect 0 0 20 20
+  Window.setRect (Rect.new 0 0 20 20)
   . Window.loadBuffer testBuffer
   $ Window.empty
 

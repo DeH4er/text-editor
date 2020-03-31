@@ -63,12 +63,12 @@ handle fsService event app =
     EvKey evKey ->
       case evKey of
         KChar '\t' ->
-          let buf1 = Buffer.insertChar (getBuffer app) ' '
-              buf2 = Buffer.insertChar buf1 ' '
-           in return $ app { appBuffer = buf2 }
+          let win1 = Window.insertChar ' ' $ getWindow app
+              win2 = Window.insertChar ' ' win1
+           in return $ app { appWindow = win2 }
 
         KChar c ->
-          return $ app { appBuffer = Buffer.insertChar (getBuffer app) c }
+          return $ app { appWindow = Window.insertChar c $ getWindow app }
 
         KUp ->
           return $ app { appWindow = Window.moveCursors (moveTop 1) (getWindow app) }

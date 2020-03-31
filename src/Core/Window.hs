@@ -86,7 +86,7 @@ fitViewByCursor =
     where
       doMoveView :: Cursor -> Rect -> Rect
       doMoveView cursor rect =
-        Rect.new newRow newCol rWidth rHeight
+        Rect.translate newRow newCol rect
           where
             newRow
               | row >= (rRow + rHeight - 1) =

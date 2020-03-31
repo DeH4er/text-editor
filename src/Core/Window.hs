@@ -177,26 +177,35 @@ moveCursors action window =
       content = Buffer.getContent . getBuffer $ window
 
 
--- TODO : move cursors
 insertChar :: Char -> Window -> Window
 insertChar char window =
-  withInsertedChar
+  withMovedCursors
     where
+      withMovedCursors :: Window
+      withMovedCursors = modifyCursors doMove withInsertedChar
+
       withInsertedChar :: Window
       withInsertedChar = modifyBuffer (doInsert $ getAllCursors window) window
 
       doInsert :: [Cursor] -> Buffer -> Buffer
-      doInsert = Buffer.modifyContent . doInsertGrouped . sortGroupedCursors . groupCursors
+      doInsert = Buffer.modifyContent . insertAtCursors
 
-      doInsertGrouped :: [[Cursor]] -> [String] -> [String]
-      doInsertGrouped [] content = content
-      doInsertGrouped (rowCursors : others) content =
-        doInsertGrouped others $ insertAtRowCursors rowCursors content
+      doMove :: [Cursor] -> [Cursor]
+      doMove = concat . moveGroupedCursors . sortGroupedCursors . groupCursors
 
-      insertAtRowCursors :: [Cursor] -> [String] -> [String]
-      insertAtRowCursors [] content = content
-      insertAtRowCursors (cursor : cursors) content =
-        insertAtRowCursors cursors $ insertAtCursor cursor content
+      moveGroupedCursors :: [[Cursor]] -> [[Cursor]]
+      moveGroupedCursors = fmap $ mapIndex doMapIndex
+
+      doMapIndex :: Int -> Cursor -> Cursor
+      doMapIndex i = Cursor.modify $ doModify i
+
+      doModify :: Int -> (Cursor.Row, Cursor.Col) -> (Cursor.Row, Cursor.Col)
+      doModify i (row, col) = (row, col + i + 1)
+
+      insertAtCursors :: [Cursor] -> [String] -> [String]
+      insertAtCursors [] content = content
+      insertAtCursors (cursor : cursors) content =
+        insertAtCursor cursor $ insertAtCursors cursors content
 
       insertAtCursor :: Cursor -> [String] -> [String]
       insertAtCursor cursor =
@@ -207,10 +216,7 @@ insertChar char window =
       sortGroupedCursors :: [[Cursor]] -> [[Cursor]]
       sortGroupedCursors [] = []
       sortGroupedCursors (rowCursors : others) =
-        sortBy byCol rowCursors : sortGroupedCursors others
-          where
-            byCol :: Cursor -> Cursor -> Ordering
-            byCol cursor1 cursor2 = compare (Cursor.getCol cursor2) (Cursor.getCol cursor1)
+        sortOn Cursor.getCol rowCursors : sortGroupedCursors others
 
       groupCursors :: [Cursor] -> [[Cursor]]
       groupCursors =

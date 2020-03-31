@@ -4,6 +4,7 @@ module Core.Utils
   , insertAt
   , cropMin
   , removeAt
+  , mapIndex
   )
   where
 
@@ -42,3 +43,11 @@ removeAt i (x:xs) = x : removeAt (i - 1) xs
 inRange :: Int -> Int -> Int -> Bool
 inRange min max val =
   val >= min && val <= max
+
+
+mapIndex :: (Int -> a -> b) -> [a] -> [b]
+mapIndex = doMap 0
+  where
+    doMap :: Int -> (Int -> a -> b) -> [a] -> [b]
+    doMap _ _ [] = []
+    doMap i f (x:xs) = f i x : doMap (i + 1) f xs

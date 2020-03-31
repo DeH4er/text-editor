@@ -83,7 +83,7 @@ handle fsService event app =
           return $ app { appWindow = Window.moveCursors (moveRight 1) (getWindow app) }
 
         KEnter ->
-          return $ app { appBuffer = Buffer.breakLine (getBuffer app) }
+          return $ app { appWindow = Window.breakLine (getWindow app) }
 
         KBackspace ->
           return $ app { appBuffer = Buffer.deleteChar (getBuffer app) }

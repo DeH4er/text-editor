@@ -86,7 +86,7 @@ handle fsService event app =
           return $ app { appWindow = Window.breakLine (getWindow app) }
 
         KBackspace ->
-          return $ app { appBuffer = Buffer.deleteChar (getBuffer app) }
+          return $ app { appWindow = Window.deleteChar (getWindow app) }
 
     EvOpen filepath -> do
       eitherContent <- loadFile fsService filepath

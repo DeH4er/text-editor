@@ -118,8 +118,8 @@ deleteChar =
   fitViewByMainCursor . withMovedCursors . withDeletedChars
     where
       withMovedCursors :: Window -> Window
-      withMovedCursors window =
-        window
+      withMovedCursors =
+        modifyGroupedCursorsByContent doMove
 
       withDeletedChars :: Window -> Window
       withDeletedChars =
@@ -135,10 +135,50 @@ deleteChar =
       deleteCharRow (cursor:cursors) content =
         joinDeleteUp cursor $ deleteCharRow cursors content
 
+      doMove :: [String] -> [[Cursor]] -> [[Cursor]]
+      doMove content = mapCollect 0 (moveRowCursors content)
+
+      moveRowCursors :: [String] -> Int -> [Cursor] -> ([Cursor], Int)
+      moveRowCursors content zeroColCount all@(firstCursor:cursors)
+        | firstCursorRow == 0 =
+          if firstCursorCol == 0
+            then
+              (firstCursor : moveCursorsLeft content cursors, zeroColCount)
+            else
+              (moveCursorsLeft content all, zeroColCount)
+        | firstCursorCol == 0 =
+          (moveCursorTopRightmost zeroColCount content firstCursor : moveCursorsLeft content cursors, zeroColCount + 1)
+        | otherwise =
+          (moveCursorsLeft content all, zeroColCount)
+        where
+          (firstCursorRow, firstCursorCol) = Cursor.getRowCol firstCursor
+
+      moveCursorsLeft :: [String] -> [Cursor] -> [Cursor]
+      moveCursorsLeft content =
+        mapIndex (moveCursorLeft content)
+
+      moveCursorLeft :: [String] -> Int -> Cursor -> Cursor
+      moveCursorLeft content times =
+        Cursor.modify (\(row, col) -> cropCursor content (row, col - times - 1))
+
+      moveCursorTopRightmost :: Int -> [String] -> Cursor -> Cursor
+      moveCursorTopRightmost zeroColCount content cursor =
+        Cursor.new croppedRow croppedCol
+          where
+            (croppedRow, croppedCol) = cropCursor content (newRow, newCol)
+            newRow = row - zeroColCount - 1
+            newCol = length $ content !! (row - zeroColCount - 1)
+            row = Cursor.getRow cursor
+
 
 modifyGroupedCursors :: ([[Cursor]] -> [[Cursor]]) -> Window -> Window
 modifyGroupedCursors f =
   modifyCursors $ concat . f . groupCursors
+
+
+modifyGroupedCursorsByContent :: ([String] -> [[Cursor]] -> [[Cursor]]) -> Window -> Window
+modifyGroupedCursorsByContent f window =
+  modifyCursors (concat . f (getContent window) . groupCursors) window
 
 
 modifyContentByGroupedCursors :: ([[Cursor]] -> [String] -> [String]) -> Window -> Window

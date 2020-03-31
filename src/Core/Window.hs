@@ -14,6 +14,7 @@ module Core.Window
   , translateRow
   , translateCol
   , moveCursors
+  , insertChar
   )
 where
 
@@ -29,6 +30,8 @@ import Core.Cursor (Cursor)
 
 import Core.MoveAction
 import Core.Utils
+
+import Data.List (groupBy, sortBy, sortOn)
 
 
 data Window
@@ -67,7 +70,7 @@ empty =
   { winBuffer = Buffer.empty
   , winRect = Rect.empty
   , winMainCursor = Cursor.empty
-  , winCursors = [Cursor.new 1 0, Cursor.new 2 0]
+  , winCursors = [Cursor.new 1 0, Cursor.new 1 5, Cursor.new 2 0]
   }
 
 
@@ -116,6 +119,11 @@ modifyRect f window =
   window {winRect = f . getRect $ window}
 
 
+modifyBuffer :: (Buffer -> Buffer) -> Window -> Window
+modifyBuffer f window =
+  window {winBuffer = f . getBuffer $ window}
+
+
 modifyCursors :: ([Cursor] -> [Cursor]) -> Window -> Window
 modifyCursors f window =
   window
@@ -127,7 +135,8 @@ modifyCursors f window =
 
 
 moveCursors :: MoveAction -> Window -> Window
-moveCursors action window = withNewRect
+moveCursors action window =
+  withNewRect
     where
       withNewRect :: Window
       withNewRect = modifyRect (doMoveView $ getMainCursor withNewCursors) withNewCursors
@@ -168,6 +177,49 @@ moveCursors action window = withNewRect
       content = Buffer.getContent . getBuffer $ window
 
 
+-- TODO : move cursors
+insertChar :: Char -> Window -> Window
+insertChar char window =
+  withInsertedChar
+    where
+      withInsertedChar :: Window
+      withInsertedChar = modifyBuffer (doInsert $ getAllCursors window) window
+
+      doInsert :: [Cursor] -> Buffer -> Buffer
+      doInsert = Buffer.modifyContent . doInsertGrouped . sortGroupedCursors . groupCursors
+
+      doInsertGrouped :: [[Cursor]] -> [String] -> [String]
+      doInsertGrouped [] content = content
+      doInsertGrouped (rowCursors : others) content =
+        doInsertGrouped others $ insertAtRowCursors rowCursors content
+
+      insertAtRowCursors :: [Cursor] -> [String] -> [String]
+      insertAtRowCursors [] content = content
+      insertAtRowCursors (cursor : cursors) content =
+        insertAtRowCursors cursors $ insertAtCursor cursor content
+
+      insertAtCursor :: Cursor -> [String] -> [String]
+      insertAtCursor cursor =
+        modifyAt row $ insertAt col char
+          where
+            (row, col) = Cursor.getRowCol cursor
+
+      sortGroupedCursors :: [[Cursor]] -> [[Cursor]]
+      sortGroupedCursors [] = []
+      sortGroupedCursors (rowCursors : others) =
+        sortBy byCol rowCursors : sortGroupedCursors others
+          where
+            byCol :: Cursor -> Cursor -> Ordering
+            byCol cursor1 cursor2 = compare (Cursor.getCol cursor2) (Cursor.getCol cursor1)
+
+      groupCursors :: [Cursor] -> [[Cursor]]
+      groupCursors =
+        groupBy byRows
+          where
+            byRows :: Cursor -> Cursor -> Bool
+            byRows cursor1 cursor2 = Cursor.getRow cursor1 == Cursor.getRow cursor2
+
+
 moveCursor :: MoveAction -> [String] -> Cursor -> Cursor
 moveCursor action content cursor = cropped
     where
@@ -180,39 +232,3 @@ cropCursor content (row, col) = (newRow, newCol)
   where
     newRow = crop 0 (length content - 1) row
     newCol = crop 0 (length $ content !! newRow) col
-
--- moveCursor :: MoveAction -> Window -> Window
--- moveCursor action window =
---   window { winCursors = newCursors }
---     where
---       newCursors = undefined
---         -- filterSame . fmap (cropCursor . mkCursor . applyMoveAction action . getRowCol) $ winCursors window
---         -- [cursor]
---
---       cursor = mkCursor croppedRow croppedCol
---
---       croppedCol =
---         if croppedRowLength == 0
---           then
---             0
---           else
---             crop 0 croppedRowLength newCol
---
---       croppedRow =
---         if rowsLength == 0
---           then
---             0
---           else
---             crop 0 (rowsLength - 1) newRow
---
---       rowsLength =
---         length (bufContent window)
---
---       croppedRowLength =
---         length (bufContent window !! croppedRow)
---
---       (newRow, newCol) =
---         applyMoveAction action (row, col)
---
---       (row, col) =
---         getRowCol $ bufCursor window

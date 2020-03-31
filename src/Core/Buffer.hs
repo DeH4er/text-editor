@@ -9,6 +9,7 @@ module Core.Buffer
   , insertChar
   , breakLine
   , deleteChar
+  , modifyContent
   )
 where
 
@@ -56,6 +57,12 @@ loadContent buffer filepath content =
   { bufFilepath = Just filepath
   , bufContent = content
   }
+
+
+modifyContent :: ([String] -> [String]) -> Buffer -> Buffer
+modifyContent f buffer =
+  buffer
+  { bufContent = f . getContent $ buffer}
 
 
 moveCursor :: MoveAction -> Buffer -> Buffer

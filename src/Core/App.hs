@@ -7,6 +7,8 @@ module Core.App
   , isAppClosed
   , getWindow
   , onResize
+  , interpretAction
+  , interpretActionIO
   )
 where
 
@@ -21,11 +23,14 @@ import qualified Core.Window as Window
 import Core.Window (Window)
 
 import Core.MoveAction
+import Core.Key
+import qualified Core.Config as Config
 
 data App =
   App
   { appWindow :: Window
   , appClose :: Bool
+  , appMode :: Mode
   }
   deriving (Show)
 
@@ -35,74 +40,95 @@ initApp =
   App
   { appWindow = Window.empty
   , appClose = False
+  , appMode = NormalMode
   }
 
 
-handle
-  :: Monad m
-  => FsService m
-  -> Event
-  -> App
-  -> m App
+handle :: Monad m => FsService m -> Event -> App -> m App
 handle fsService event app =
   case event of
-    EvClose ->
-      return $ app { appClose = True }
-
-    EvSave -> do
-      case Window.getFilepath . getWindow $ app of
-        Just filepath ->
-          saveFile fsService filepath (unlines . getContent $ app)
+    EvKey evKey ->
+      case getAction Config.bindings evKey (appMode app) of
+        Just action ->
+          interpretAction fsService action app
 
         Nothing ->
-          return . return $ ()
+          if appMode app == InsertMode
+            then
+              case evKey of
+                KChar '\t' ->
+                  return . modifyWindow (Window.insertChar ' ' . Window.insertChar ' ') $ app
 
+                KChar c ->
+                  return . modifyWindow (Window.insertChar c) $ app
+
+                _ ->
+                  return app
+            else
+              return app
+    _ ->
       return app
 
-    EvKey evKey ->
-      case evKey of
-        KChar '\t' ->
-          return . modifyWindow (Window.insertChar ' ' . Window.insertChar ' ') $ app
 
-        KChar c ->
-          return . modifyWindow (Window.insertChar c) $ app
-
-        KUp ->
-          return . modifyWindow (Window.moveCursors $ moveTop 1) $ app
-
-        KDown ->
-          return . modifyWindow (Window.moveCursors $ moveBottom 1) $ app
-
-        KLeft ->
-          return . modifyWindow (Window.moveCursors $ moveLeft 1) $ app
-
-        KRight ->
-          return . modifyWindow (Window.moveCursors $ moveRight 1) $ app
-
-        KEnter ->
-          return . modifyWindow Window.breakLine $ app
-
-        KBackspace ->
-          return . modifyWindow Window.deleteChar $ app
-
-    EvOpen filepath -> do
-      eitherContent <- loadFile fsService filepath
-
-      case eitherContent of
-        Left _ ->
-          return app
-
-        Right content ->
-          let buffer = Buffer.loadContent (getBuffer app) filepath (lines content)
-            in return $ app { appWindow = Window.loadBuffer buffer $ getWindow app}
-
-
-handleIO
-  :: Event
-  -> App
-  -> IO App
+handleIO :: Event -> App -> IO App
 handleIO =
   handle ioFsService
+
+
+interpretActionIO :: Action -> App -> IO App
+interpretActionIO =
+  interpretAction ioFsService
+
+
+interpretAction :: Monad m => FsService m -> Action -> App -> m App
+
+interpretAction _ (MoveCursors action) app =
+  return . modifyWindow (Window.moveCursors action) $ app
+
+
+interpretAction _ (InsertChar char) app =
+  return . modifyWindow (Window.insertChar char) $ app
+
+
+interpretAction _ BreakLine app =
+  return . modifyWindow Window.breakLine $ app
+
+
+interpretAction _ DeleteChar app =
+  return . modifyWindow Window.deleteChar $ app
+
+
+interpretAction _ Quit app =
+  return $ app { appClose = True }
+
+interpretAction _ (SetMode mode) app =
+  return $ app { appMode = mode }
+
+interpretAction fsService (OpenFile path) app = do
+  eitherContent <- loadFile fsService path
+
+  case eitherContent of
+    Left _ ->
+      return app
+
+    Right content ->
+      return . modifyWindow (Window.loadBuffer buffer) $ app
+      where
+        buffer = Buffer.loadContent (getBuffer app) path (lines content)
+
+interpretAction fsService SaveFile app = do
+  case Window.getFilepath . getWindow $ app of
+    Just filepath ->
+      saveFile fsService filepath (unlines . getContent $ app)
+
+    Nothing ->
+      return . return $ ()
+
+  return app
+
+interpretAction fsService (SaveFileAs filepath) app = do
+  saveFile fsService filepath (unlines . getContent $ app)
+  return app
 
 
 getContent :: App -> [String]

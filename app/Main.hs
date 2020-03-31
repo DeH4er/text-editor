@@ -1,6 +1,7 @@
 import           System.Environment
 import           Ui (startUi)
-import           Core (handleIO, openEvent, initApp)
+import           Core (interpretActionIO, openEvent, initApp)
+import           Core.Key
 
 
 main = do
@@ -14,10 +15,10 @@ main = do
 
 openFile :: FilePath -> IO ()
 openFile filepath = do
-  newApp <- handleIO openFileEvent initApp
+  newApp <- interpretActionIO openFileAction initApp
   startUi newApp
     where
-      openFileEvent = openEvent filepath
+      openFileAction = OpenFile filepath
 
 
 openEmpty :: IO ()

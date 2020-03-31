@@ -52,6 +52,7 @@ data Key =
   | KRight
   | KEnter
   | KBackspace
+  deriving (Show, Eq)
 
 
 keyEsc :: Key

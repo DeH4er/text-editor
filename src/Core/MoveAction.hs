@@ -17,6 +17,7 @@ data MoveAction =
   | MLeft Int
   | MRight Int
   | MAt Row Col
+  deriving (Show, Eq)
 
 
 moveTop :: Int -> MoveAction

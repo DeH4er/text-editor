@@ -38,8 +38,8 @@ ui vty _app =
 
 
 mapEvent :: Event -> Maybe Core.Event
-mapEvent (EvKey (KChar s) [MCtrl]) =
-  Just Core.saveEvent
+-- mapEvent (EvKey (KChar s) [MCtrl]) =
+--   Just Core.saveEvent
 
 mapEvent (EvKey (KChar c) _) =
   Just . Core.keyEvent $ Core.keyChar c
@@ -63,7 +63,7 @@ mapEvent (EvKey KBS _) =
   Just . Core.keyEvent $ Core.keyBackspace
 
 mapEvent (EvKey KEsc _) =
-  Just Core.closeEvent
+  Just . Core.keyEvent $ Core.keyEsc
 
 mapEvent _ =
   Nothing

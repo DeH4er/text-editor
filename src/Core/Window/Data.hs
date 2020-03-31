@@ -3,6 +3,7 @@ module Core.Window.Data
   , getBuffer
   , getRect
   , getContent
+  , getFilepath
   , getAllCursors
   , getMainCursor
   , empty
@@ -48,6 +49,10 @@ getBuffer :: Window -> Buffer
 getBuffer =
   winBuffer
 
+
+getFilepath :: Window -> Maybe FilePath
+getFilepath =
+  Buffer.getFilepath . getBuffer
 
 getContent :: Window -> [String]
 getContent =

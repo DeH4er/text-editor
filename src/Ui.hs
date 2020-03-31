@@ -93,7 +93,7 @@ getLayers app =
 
 textLayer :: Core.App -> Image
 textLayer app =
-  mconcat $ string attr <$> Core.getLines app
+  mconcat $ string attr <$> Core.getContent app
 
 
 cursorLayers :: Core.App -> [Image]
@@ -106,7 +106,7 @@ cursorLayers app = doImage <$> (Window.getAllCursors . Core.getWindow $ app)
           Cursor.getRowCol cursor
 
         cursorChar =
-          getCursorChar row col $ Core.getLines app
+          getCursorChar row col $ Core.getContent app
 
         image =
           translate col row $ char cursorAttr cursorChar

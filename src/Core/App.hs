@@ -3,8 +3,7 @@ module Core.App
   , initApp
   , handle
   , handleIO
-  , getLines
-  , getBuffer
+  , getContent
   , isAppClosed
   , getWindow
   , onResize
@@ -14,7 +13,9 @@ where
 
 import Core.Event
 import Core.Fs
+
 import qualified Core.Buffer as Buffer
+import Core.Buffer (Buffer)
 
 import qualified Core.Window as Window
 import Core.Window (Window)
@@ -23,8 +24,7 @@ import Core.MoveAction
 
 data App =
   App
-  { appBuffer :: Buffer.Buffer
-  , appWindow :: Window
+  { appWindow :: Window
   , appClose :: Bool
   }
   deriving (Show)
@@ -33,8 +33,7 @@ data App =
 initApp :: App
 initApp =
   App
-  { appBuffer = Buffer.empty
-  , appWindow = Window.empty
+  { appWindow = Window.empty
   , appClose = False
   }
 
@@ -51,9 +50,9 @@ handle fsService event app =
       return $ app { appClose = True }
 
     EvSave -> do
-      case Buffer.getFilepath (getBuffer app) of
+      case Window.getFilepath . getWindow $ app of
         Just filepath ->
-          saveFile fsService filepath (unlines $ getLines app)
+          saveFile fsService filepath (unlines . getContent $ app)
 
         Nothing ->
           return . return $ ()
@@ -63,30 +62,28 @@ handle fsService event app =
     EvKey evKey ->
       case evKey of
         KChar '\t' ->
-          let win1 = Window.insertChar ' ' $ getWindow app
-              win2 = Window.insertChar ' ' win1
-           in return $ app { appWindow = win2 }
+          return . modifyWindow (Window.insertChar ' ' . Window.insertChar ' ') $ app
 
         KChar c ->
-          return $ app { appWindow = Window.insertChar c $ getWindow app }
+          return . modifyWindow (Window.insertChar c) $ app
 
         KUp ->
-          return $ app { appWindow = Window.moveCursors (moveTop 1) (getWindow app) }
+          return . modifyWindow (Window.moveCursors $ moveTop 1) $ app
 
         KDown ->
-          return $ app { appWindow = Window.moveCursors (moveBottom 1) (getWindow app) }
+          return . modifyWindow (Window.moveCursors $ moveBottom 1) $ app
 
         KLeft ->
-          return $ app { appWindow = Window.moveCursors (moveLeft 1) (getWindow app) }
+          return . modifyWindow (Window.moveCursors $ moveLeft 1) $ app
 
         KRight ->
-          return $ app { appWindow = Window.moveCursors (moveRight 1) (getWindow app) }
+          return . modifyWindow (Window.moveCursors $ moveRight 1) $ app
 
         KEnter ->
-          return $ app { appWindow = Window.breakLine (getWindow app) }
+          return . modifyWindow Window.breakLine $ app
 
         KBackspace ->
-          return $ app { appWindow = Window.deleteChar (getWindow app) }
+          return . modifyWindow Window.deleteChar $ app
 
     EvOpen filepath -> do
       eitherContent <- loadFile fsService filepath
@@ -104,17 +101,18 @@ handleIO
   :: Event
   -> App
   -> IO App
-handleIO = handle ioFsService
+handleIO =
+  handle ioFsService
 
 
-getLines :: App -> [String]
-getLines app =
-  Buffer.getContent . Window.getBuffer . getWindow $ app
+getContent :: App -> [String]
+getContent =
+  Window.getContent . getWindow
 
 
-getBuffer :: App -> Buffer.Buffer
+getBuffer :: App -> Buffer
 getBuffer =
-  appBuffer
+  Window.getBuffer . getWindow
 
 
 getWindow :: App -> Window
@@ -130,3 +128,8 @@ onResize (width, height) app =
 isAppClosed :: App -> Bool
 isAppClosed =
   appClose
+
+
+modifyWindow :: (Window -> Window) -> App -> App
+modifyWindow f app =
+  app { appWindow = f . getWindow $ app }

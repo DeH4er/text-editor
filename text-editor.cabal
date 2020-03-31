@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 292a21ecf15b066c0374600a9d9d6f861676bd29504c0fd37399097dd354b44c
+-- hash: a66ffee0b86591a8d3e86bfb1094c1517511ac0d896c37fb3754466bd9392fbd
 
 name:           text-editor
 version:        0.1.0.0
@@ -38,6 +38,7 @@ library
       Core.MoveAction
       Core.Utils
       Core.Window
+      Core.Window.Data
       Core.Window.Rect
       Ui
   other-modules:

@@ -123,7 +123,8 @@ getWindow =
 
 
 onResize :: (Int, Int) -> App -> App
-onResize (width, height) app = app { appWindow = Window.resize width height $ getWindow app }
+onResize (width, height) app =
+  app { appWindow = Window.resize width height $ getWindow app }
 
 
 isAppClosed :: App -> Bool

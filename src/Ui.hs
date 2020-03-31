@@ -3,11 +3,11 @@ module Ui where
 import Control.Monad (unless)
 import Graphics.Vty
 import qualified Core
-import qualified Core.Buffer as Buffer
 
 import qualified Core.Window as Window
-import qualified Core.Window.Rect as Rect
 import Core.Window (Window)
+
+import qualified Core.Window.Rect as Rect
 
 import qualified Core.Cursor as Cursor
 import qualified Core.Utils as Utils

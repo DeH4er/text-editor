@@ -3,6 +3,9 @@ module Core.Window
   , insertChar
   , breakLine
   , deleteChar
+  , markPhantom
+  , createPhantoms
+  , removeCursors
   , module Core.Window.Data
   )
 where
@@ -22,6 +25,11 @@ import Core.MoveAction
 import Core.Utils
 
 import Core.Window.Data
+
+
+removeCursors :: Window -> Window
+removeCursors =
+  modifyAdditionalCursors $ const []
 
 
 moveCursors :: MoveAction -> Window -> Window
@@ -170,6 +178,29 @@ deleteChar =
             newCol = length $ content !! (row - zeroColCount - 1)
             row = Cursor.getRow cursor
 
+
+markPhantom :: Window -> Window
+markPhantom window =
+  modifyPhantoms (doMark $ getMainCursor window) window
+    where
+      doMark :: Cursor -> [Cursor] -> [Cursor]
+      doMark mainCursor phantoms =
+        if mainCursor `elem` phantoms
+          then
+            filter (/= mainCursor) phantoms
+          else
+            mainCursor : phantoms
+
+
+createPhantoms :: Window -> Window
+createPhantoms =
+  withEmptyPhantoms . withCursors
+    where
+      withEmptyPhantoms =
+         modifyPhantoms (const [])
+
+      withCursors =
+        modifyAdditionalCursorsByPhantoms const
 
 
 filterSameGroupedCursors :: [[Cursor]] -> [[Cursor]]

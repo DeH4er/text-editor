@@ -133,10 +133,17 @@ textLayer app =
 
 
 cursorLayers :: Core.App -> [Image]
-cursorLayers app = doImage <$> (Window.getAllCursors . Core.getWindow $ app)
+cursorLayers app =
+  cursors <> phantomCursors
   where
-    doImage :: Cursor.Cursor -> Image
-    doImage cursor = image
+    cursors =
+      doImage cursorAttr <$> (Window.getAllCursors . Core.getWindow $ app)
+
+    phantomCursors =
+      doImage phantomCursorAttr <$> (Window.getPhantoms . Core.getWindow $ app)
+
+    doImage :: Attr -> Cursor.Cursor -> Image
+    doImage attr cursor = image
       where
         (row, col) =
           Cursor.getRowCol cursor
@@ -145,7 +152,7 @@ cursorLayers app = doImage <$> (Window.getAllCursors . Core.getWindow $ app)
           getCursorChar row col $ Core.getContent app
 
         image =
-          translate col row $ char cursorAttr cursorChar
+          translate col row $ char attr cursorChar
 
 
 cropImage :: Core.App -> Image -> Image
@@ -206,6 +213,11 @@ commandInputAttr =
 cursorAttr :: Attr
 cursorAttr =
   defAttr `withForeColor` black `withBackColor` white
+
+
+phantomCursorAttr :: Attr
+phantomCursorAttr =
+  defAttr `withForeColor` white `withBackColor` gray1
 
 
 gray1 :: Color

@@ -14,8 +14,13 @@ module Core.Window.Data
   , modifyContent
   , modifyContentByCursors
   , modifyCursorsByContent
+  , modifyAdditionalCursorsByPhantoms
   , resize
   , setRect
+  , getCursors
+  , modifyPhantoms
+  , modifyAdditionalCursors
+  , getPhantoms
   )
 where
 
@@ -36,6 +41,7 @@ data Window
     , winRect :: Rect
     , winMainCursor :: Cursor
     , winCursors :: [Cursor]
+    , winPhantoms :: [Cursor]
     }
     deriving (Show, Eq)
 
@@ -54,6 +60,7 @@ getFilepath :: Window -> Maybe FilePath
 getFilepath =
   Buffer.getFilepath . getBuffer
 
+
 getContent :: Window -> [String]
 getContent =
   Buffer.getContent . getBuffer
@@ -64,9 +71,19 @@ getAllCursors window =
   winMainCursor window : winCursors window
 
 
+getCursors :: Window -> [Cursor]
+getCursors =
+  winCursors
+
+
 getMainCursor :: Window -> Cursor
 getMainCursor =
   winMainCursor
+
+
+getPhantoms :: Window -> [Cursor]
+getPhantoms =
+  winPhantoms
 
 
 modifyRect :: (Rect -> Rect) -> Window -> Window
@@ -89,6 +106,12 @@ modifyCursors f window =
       newWinCursors = f . getAllCursors $ window
 
 
+modifyAdditionalCursors :: ([Cursor] -> [Cursor]) -> Window -> Window
+modifyAdditionalCursors f window =
+  window { winCursors = f . getCursors $ window}
+
+
+
 modifyContent :: ([String] -> [String]) -> Window -> Window
 modifyContent f =
   modifyBuffer $ Buffer.modifyContent f
@@ -104,6 +127,16 @@ modifyCursorsByContent f window =
   modifyCursors (f $ getContent window) window
 
 
+modifyPhantoms :: ([Cursor] -> [Cursor]) -> Window -> Window
+modifyPhantoms f window =
+  window { winPhantoms = f . getPhantoms $ window}
+
+
+modifyAdditionalCursorsByPhantoms :: ([Cursor] -> [Cursor] -> [Cursor]) -> Window -> Window
+modifyAdditionalCursorsByPhantoms f window =
+  modifyAdditionalCursors (f $ getPhantoms window) window
+
+
 empty :: Window
 empty =
   Window
@@ -111,6 +144,7 @@ empty =
   , winRect = Rect.empty
   , winMainCursor = Cursor.empty
   , winCursors = []
+  , winPhantoms = []
   }
 
 

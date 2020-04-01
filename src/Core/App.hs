@@ -126,6 +126,18 @@ interpretAction fsService ExecuteConsole app =
       consoleContent = Console.getContent . getConsole $ app
 
 
+interpretAction _ MarkPhantom app =
+  return . modifyWindow Window.markPhantom $ app
+
+
+interpretAction _ CreatePhantoms app =
+  return . modifyWindow Window.createPhantoms $ app
+
+
+interpretAction _ RemoveCursors app =
+  return . modifyWindow Window.removeCursors $ app
+
+
 onResize :: (Int, Int) -> App -> App
 onResize (width, height) =
   modifyWindow $ Window.resize width height

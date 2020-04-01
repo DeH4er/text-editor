@@ -21,11 +21,14 @@ data Action
   | InsertChar Char
   | InsertCharConsole Char
   | DeleteCharConsole
+  | RemoveCursors
   | ExecuteConsole
   | BreakLine
   | DeleteChar
   | OpenFile FilePath
   | SaveFile
   | SaveFileAs FilePath
+  | MarkPhantom
+  | CreatePhantoms
   | Quit
   deriving (Show, Eq)

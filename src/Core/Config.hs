@@ -15,7 +15,9 @@ getBinding (KChar 'k') Normal = Just . MoveCursors $ moveTop 1
 getBinding (KChar 'j') Normal = Just . MoveCursors $ moveBottom 1
 getBinding (KChar 'i') Normal = Just . SetMode $ Insert
 getBinding (KChar ';') Normal = Just . SetMode $ Command
-getBinding KEsc        Normal = Just Quit
+getBinding (KChar 'm') Normal = Just MarkPhantom
+getBinding (KChar 's') Normal = Just CreatePhantoms
+getBinding KEsc        Normal = Just RemoveCursors
 
 getBinding KEsc        Insert = Just . SetMode $ Normal
 getBinding (KChar c)   Insert = Just . InsertChar $ c

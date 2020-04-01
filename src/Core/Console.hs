@@ -28,7 +28,7 @@ insertChar c =
 
 deleteChar :: Console -> Console
 deleteChar =
-  moveLeft . withDeletedChar
+  withDeletedChar . moveLeft
     where
       withDeletedChar :: Console -> Console
       withDeletedChar =

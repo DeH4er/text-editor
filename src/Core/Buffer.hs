@@ -2,10 +2,10 @@ module Core.Buffer
   ( Buffer
   , getContent
   , getFilepath
-  , getCursor
   , empty
   , loadContent
   , modifyContent
+  , fromContent
   )
 where
 
@@ -17,7 +17,6 @@ import Core.MoveAction
 data Buffer =
   Buffer
   { bufFilepath :: Maybe FilePath
-  , bufCursor :: Cursor.Cursor
   , bufContent :: [String]
   }
   deriving (Show, Eq)
@@ -33,19 +32,17 @@ getFilepath =
   bufFilepath
 
 
-getCursor :: Buffer -> Cursor.Cursor
-getCursor =
-  bufCursor
-
-
 empty :: Buffer
 empty =
   Buffer
   { bufFilepath = Nothing
-  , bufCursor = Cursor.empty
   , bufContent = [""]
   }
 
+
+fromContent :: FilePath -> [String] -> Buffer
+fromContent =
+  loadContent empty
 
 loadContent :: Buffer -> FilePath -> [String] -> Buffer
 loadContent buffer filepath content =

@@ -82,9 +82,9 @@ interpretAction fsService (OpenFile path) app = do
       return app
 
     Right content ->
-      return . modifyWindow (const $ Window.loadBuffer buffer Window.empty) $ app
+      return . modifyWindow (const $ Window.fromBuffer buffer) $ app
       where
-        buffer = Buffer.loadContent (getBuffer app) path (lines content)
+        buffer = Buffer.fromContent path (lines content)
 
 
 interpretAction fsService SaveFile app = do
@@ -111,12 +111,12 @@ interpretAction _ DeleteCharConsole app =
   return . modifyConsole Console.deleteChar $ app
 
 
-interpretAction fsService ExecuteConsole app = do
+interpretAction fsService ExecuteConsole app =
   case Config.getCommand consoleContent of
     Just action -> do
       app1 <- interpretAction fsService action app
       exitConsole app1
-    Nothing -> do
+    Nothing ->
       exitConsole app
     where
       exitConsole app = do
@@ -124,7 +124,6 @@ interpretAction fsService ExecuteConsole app = do
         return . modifyConsole Console.clearContent $ app1
 
       consoleContent = Console.getContent . getConsole $ app
-
 
 
 onResize :: (Int, Int) -> App -> App

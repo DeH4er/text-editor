@@ -7,7 +7,7 @@ module Core.Window.Data
   , getAllCursors
   , getMainCursor
   , empty
-  , loadBuffer
+  , fromBuffer
   , modifyRect
   , modifyBuffer
   , modifyCursors
@@ -114,9 +114,9 @@ empty =
   }
 
 
-loadBuffer :: Buffer -> Window -> Window
-loadBuffer buffer =
-  (modifyBuffer . const $ buffer)
+fromBuffer :: Buffer -> Window
+fromBuffer buffer =
+  modifyBuffer (const buffer) empty
 
 
 resize :: Rect.Width -> Rect.Height  -> Window -> Window

@@ -29,8 +29,7 @@ spec = do
 testWindow :: Window.Window
 testWindow =
   Window.setRect (Rect.new 0 0 20 20)
-  . Window.loadBuffer testBuffer
-  $ Window.empty
+  $ Window.fromBuffer testBuffer
 
 
 testBuffer :: Buffer.Buffer

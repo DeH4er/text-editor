@@ -7,6 +7,12 @@ import qualified Core
 import qualified Core.Window as Window
 import Core.Window (Window)
 
+import qualified Core.Mode as Mode
+import Core.Mode (Mode)
+
+import qualified Core.Console as Console
+import Core.Console (Console)
+
 import qualified Core.Window.Rect as Rect
 
 import qualified Core.Cursor as Cursor
@@ -26,7 +32,7 @@ ui vty _app =
   unless (Core.isAppClosed _app) $ do
     bounds <- displayBounds (outputIface vty)
     let app = Core.onResize bounds _app
-    update vty (makePicture app)
+    update vty (makePicture bounds app)
     e <- nextEvent vty
     case mapEvent e of
       Just mappedEvent -> do
@@ -69,11 +75,11 @@ mapEvent _ =
   Nothing
 
 
-makePicture :: Core.App -> Picture
-makePicture app =
+makePicture :: DisplayRegion -> Core.App -> Picture
+makePicture region app =
   Picture
   { picCursor = NoCursor
-  , picLayers = getLayers app
+  , picLayers = getLayers region app
   , picBackground = background
   }
 
@@ -86,9 +92,41 @@ background =
   }
 
 
-getLayers :: Core.App -> [Image]
-getLayers app =
-  cropImage app <$> cursorLayers app <> [textLayer app]
+getLayers :: DisplayRegion -> Core.App -> [Image]
+getLayers region app =
+  case Core.getMode app of
+    Mode.Command ->
+      getCommandModeLayers region (Core.getConsole app) <> baseLayers
+    _ ->
+      baseLayers
+
+  where
+    baseLayers = cropImage app <$> cursorLayers app <> [textLayer app]
+
+
+getCommandModeLayers :: DisplayRegion -> Console -> [Image]
+getCommandModeLayers (width, height) console =
+  [cursor, text, input, bg]
+    where
+      cursor =
+        translate cursorPosition 2 $ char commandCursorAttr cursorChar
+          where
+            cursorPosition =
+              2 + Console.getPosition console
+
+            cursorChar =
+              ' '
+
+      text =
+        translate 2 2 $ string commandTextAttr $ Console.getContent console
+
+      input =
+        translate 2 2 $ charFill commandInputAttr ' ' inputWidth 1
+          where inputWidth = width - 4
+
+      bg =
+        translate 1 1 $charFill commandBgAttr ' ' bgWidth 3
+          where bgWidth = width - 2
 
 
 textLayer :: Core.App -> Image
@@ -147,7 +185,31 @@ attr =
   defAttr
 
 
+commandBgAttr :: Attr
+commandBgAttr =
+  defAttr `withBackColor` gray1
+
+
+commandCursorAttr :: Attr
+commandCursorAttr =
+  defAttr `withForeColor` black `withBackColor` white
+
+
+commandTextAttr :: Attr
+commandTextAttr =
+  defAttr `withForeColor` white `withBackColor` black
+
+
+commandInputAttr :: Attr
+commandInputAttr =
+  defAttr `withForeColor` white `withBackColor` black
+
+
 cursorAttr :: Attr
 cursorAttr =
   defAttr `withForeColor` black `withBackColor` white
 
+
+gray1 :: Color
+gray1 =
+  rgbColor 0x33 0x33 0x33

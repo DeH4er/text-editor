@@ -4,6 +4,7 @@ module Core.Console
   , moveRight
   , deleteChar
   , insertChar
+  , clearContent
   )
 where
 
@@ -54,6 +55,17 @@ moveRight =
       doMove :: String -> Position -> Position
       doMove content position =
         cropPosition content (position + 1)
+
+
+clearContent :: Console -> Console
+clearContent =
+   withModifiedPosition . withModifiedContent
+  where
+    withModifiedPosition =
+      modifyPosition . const $ 0
+
+    withModifiedContent =
+      modifyContent . const $ ""
 
 
 cropPosition :: String -> Position -> Position

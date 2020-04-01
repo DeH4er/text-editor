@@ -110,13 +110,13 @@ empty =
   { winBuffer = Buffer.empty
   , winRect = Rect.empty
   , winMainCursor = Cursor.empty
-  , winCursors = [Cursor.new 1 0, Cursor.new 1 5, Cursor.new 2 0]
+  , winCursors = []
   }
 
 
 loadBuffer :: Buffer -> Window -> Window
 loadBuffer buffer =
-  modifyBuffer $ const buffer
+  (modifyBuffer . const $ buffer)
 
 
 resize :: Rect.Width -> Rect.Height  -> Window -> Window

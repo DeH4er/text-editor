@@ -82,7 +82,7 @@ interpretAction fsService (OpenFile path) app = do
       return app
 
     Right content ->
-      return . modifyWindow (Window.loadBuffer buffer) $ app
+      return . modifyWindow (const $ Window.loadBuffer buffer Window.empty) $ app
       where
         buffer = Buffer.loadContent (getBuffer app) path (lines content)
 
@@ -114,11 +114,15 @@ interpretAction _ DeleteCharConsole app =
 interpretAction fsService ExecuteConsole app = do
   case Config.getCommand consoleContent of
     Just action -> do
-      newApp <- interpretAction fsService action app
-      interpretAction fsService (SetMode Normal) newApp
-    Nothing ->
-      interpretAction fsService (SetMode Normal) app
+      app1 <- interpretAction fsService action app
+      exitConsole app1
+    Nothing -> do
+      exitConsole app
     where
+      exitConsole app = do
+        app1 <- interpretAction fsService (SetMode Normal) app
+        return . modifyConsole Console.clearContent $ app1
+
       consoleContent = Console.getContent . getConsole $ app
 
 

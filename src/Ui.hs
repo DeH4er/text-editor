@@ -44,8 +44,6 @@ ui vty _app =
 
 
 mapEvent :: Event -> Maybe Core.Key
--- mapEvent (EvKey (KChar s) [MCtrl]) =
---   Just Core.saveEvent
 
 mapEvent (EvKey (KChar c) _) =
   Just . Core.keyChar $ c

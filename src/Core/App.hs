@@ -23,7 +23,7 @@ import qualified Core.Window as Window
 import Core.Window (Window)
 
 import Core.MoveAction
-import Core.Key
+import Core.Mode
 import qualified Core.Config as Config
 
 data App =

@@ -1,4 +1,4 @@
-module Core.Key
+module Core.Mode
   ( Mode(..)
   , Action(..)
   , getAction

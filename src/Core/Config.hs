@@ -3,7 +3,7 @@ module Core.Config
   )
 where
 
-import Core.Key
+import Core.Mode
 import Core.Event
 import Core.MoveAction
 

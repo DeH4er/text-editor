@@ -1,20 +1,13 @@
 module Core.App
-  ( App
-  , initApp
-  , handle
+  ( handle
   , handleIO
-  , getContent
-  , isAppClosed
-  , getWindow
   , onResize
   , interpretAction
   , interpretActionIO
+  , module Core.App.Data
   )
 where
 
-
-import Core.Event
-import Core.Fs
 
 import qualified Core.Buffer as Buffer
 import Core.Buffer (Buffer)
@@ -22,55 +15,29 @@ import Core.Buffer (Buffer)
 import qualified Core.Window as Window
 import Core.Window (Window)
 
-import Core.MoveAction
-import Core.Mode
+import qualified Core.Console as Console
+import Core.Console (Console)
+
 import qualified Core.Config as Config
 
-data App =
-  App
-  { appWindow :: Window
-  , appClose :: Bool
-  , appMode :: Mode
-  }
-  deriving (Show)
+import Core.MoveAction
+import Core.Mode
+import Core.Event
+import Core.Fs
+import Core.App.Data
 
 
-initApp :: App
-initApp =
-  App
-  { appWindow = Window.empty
-  , appClose = False
-  , appMode = NormalMode
-  }
+handle :: Monad m => FsService m -> Key -> App -> m App
+handle fsService key app =
+  case Config.getBinding key (getMode app) of
+    Just action ->
+      interpretAction fsService action app
 
-
-handle :: Monad m => FsService m -> Event -> App -> m App
-handle fsService event app =
-  case event of
-    EvKey evKey ->
-      case getAction Config.bindings evKey (appMode app) of
-        Just action ->
-          interpretAction fsService action app
-
-        Nothing ->
-          if appMode app == InsertMode
-            then
-              case evKey of
-                KChar '\t' ->
-                  return . modifyWindow (Window.insertChar ' ' . Window.insertChar ' ') $ app
-
-                KChar c ->
-                  return . modifyWindow (Window.insertChar c) $ app
-
-                _ ->
-                  return app
-            else
-              return app
-    _ ->
+    Nothing ->
       return app
 
 
-handleIO :: Event -> App -> IO App
+handleIO :: Key -> App -> IO App
 handleIO =
   handle ioFsService
 
@@ -81,6 +48,7 @@ interpretActionIO =
 
 
 interpretAction :: Monad m => FsService m -> Action -> App -> m App
+
 
 interpretAction _ (MoveCursors action) app =
   return . modifyWindow (Window.moveCursors action) $ app
@@ -99,10 +67,12 @@ interpretAction _ DeleteChar app =
 
 
 interpretAction _ Quit app =
-  return $ app { appClose = True }
+  return . close $ app
+
 
 interpretAction _ (SetMode mode) app =
-  return $ app { appMode = mode }
+  return $ setMode mode app
+
 
 interpretAction fsService (OpenFile path) app = do
   eitherContent <- loadFile fsService path
@@ -116,6 +86,7 @@ interpretAction fsService (OpenFile path) app = do
       where
         buffer = Buffer.loadContent (getBuffer app) path (lines content)
 
+
 interpretAction fsService SaveFile app = do
   case Window.getFilepath . getWindow $ app of
     Just filepath ->
@@ -126,36 +97,32 @@ interpretAction fsService SaveFile app = do
 
   return app
 
+
 interpretAction fsService (SaveFileAs filepath) app = do
   saveFile fsService filepath (unlines . getContent $ app)
   return app
 
 
-getContent :: App -> [String]
-getContent =
-  Window.getContent . getWindow
+interpretAction _ (InsertCharConsole c) app =
+  return . modifyConsole (Console.insertChar c) $ app
 
 
-getBuffer :: App -> Buffer
-getBuffer =
-  Window.getBuffer . getWindow
+interpretAction _ DeleteCharConsole app =
+  return . modifyConsole Console.deleteChar $ app
 
 
-getWindow :: App -> Window
-getWindow =
-  appWindow
+interpretAction fsService ExecuteConsole app = do
+  case Config.getCommand consoleContent of
+    Just action -> do
+      newApp <- interpretAction fsService action app
+      interpretAction fsService (SetMode Normal) newApp
+    Nothing ->
+      interpretAction fsService (SetMode Normal) app
+    where
+      consoleContent = Console.getContent . getConsole $ app
+
 
 
 onResize :: (Int, Int) -> App -> App
-onResize (width, height) app =
-  app { appWindow = Window.resize width height $ getWindow app }
-
-
-isAppClosed :: App -> Bool
-isAppClosed =
-  appClose
-
-
-modifyWindow :: (Window -> Window) -> App -> App
-modifyWindow f app =
-  app { appWindow = f . getWindow $ app }
+onResize (width, height) =
+  modifyWindow $ Window.resize width height

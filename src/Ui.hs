@@ -37,33 +37,33 @@ ui vty _app =
         ui vty app
 
 
-mapEvent :: Event -> Maybe Core.Event
+mapEvent :: Event -> Maybe Core.Key
 -- mapEvent (EvKey (KChar s) [MCtrl]) =
 --   Just Core.saveEvent
 
 mapEvent (EvKey (KChar c) _) =
-  Just . Core.keyEvent $ Core.keyChar c
+  Just . Core.keyChar $ c
 
 mapEvent (EvKey KUp _) =
-  Just . Core.keyEvent $ Core.keyUp
+  Just Core.keyUp
 
 mapEvent (EvKey KDown _) =
-  Just . Core.keyEvent $ Core.keyDown
+  Just Core.keyDown
 
 mapEvent (EvKey KLeft _) =
-  Just . Core.keyEvent $ Core.keyLeft
+  Just Core.keyLeft
 
 mapEvent (EvKey KRight _) =
-  Just . Core.keyEvent $ Core.keyRight
+  Just Core.keyRight
 
 mapEvent (EvKey KEnter _) =
-  Just . Core.keyEvent $ Core.keyEnter
+  Just Core.keyEnter
 
 mapEvent (EvKey KBS _) =
-  Just . Core.keyEvent $ Core.keyBackspace
+  Just Core.keyBackspace
 
 mapEvent (EvKey KEsc _) =
-  Just . Core.keyEvent $ Core.keyEsc
+  Just Core.keyEsc
 
 mapEvent _ =
   Nothing

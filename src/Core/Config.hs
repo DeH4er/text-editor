@@ -35,7 +35,6 @@ getBinding _ _ = Nothing
 -- TODO: add parser for command
 getCommand :: String -> Maybe Action
 getCommand "q" = Just Quit
-getCommand "quit" = Just Quit
 getCommand "s" = Just SaveFile
 getCommand "" = Nothing
 getCommand cmd =

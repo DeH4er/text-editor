@@ -90,7 +90,7 @@ breakLine =
 
       withMovedCursors :: Window -> Window
       withMovedCursors =
-        modifyGroupedCursors (filterSameGroupedCursors . doMove)
+        modifyGroupedCursors $ filterSameGroupedCursors . doMove
 
       doBreak :: [[Cursor]] -> [String] -> [String]
       doBreak [] content = content
@@ -277,7 +277,7 @@ getGroupedCursors =
 
 groupCursors :: [Cursor] -> [[Cursor]]
 groupCursors =
-  sortGroupedCursors . doGroupCursors
+  sortGroupedCursors . doGroupCursors . sortByRow
     where
       sortGroupedCursors :: [[Cursor]] -> [[Cursor]]
       sortGroupedCursors [] =
@@ -293,6 +293,9 @@ groupCursors =
             byRows :: Cursor -> Cursor -> Bool
             byRows cursor1 cursor2 =
               Cursor.getRow cursor1 == Cursor.getRow cursor2
+
+      sortByRow :: [Cursor] -> [Cursor]
+      sortByRow = sortOn Cursor.getRow
 
 
 moveCursor :: MoveAction -> [String] -> Cursor -> Cursor

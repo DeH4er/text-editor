@@ -1,5 +1,6 @@
 module Core.Window
-  ( moveCursors
+  ( moveForwardWord
+  , moveCursors
   , insertChar
   , breakLine
   , deleteChar
@@ -25,6 +26,18 @@ import Core.MoveAction
 import Core.Utils
 
 import Core.Window.Data
+
+import qualified Core.CursorUtils as CursorUtils
+
+
+moveForwardWord :: Window -> Window
+moveForwardWord =
+  modifyCursorsByContent doModify
+    where
+      doModify :: [String] -> [Cursor] -> [Cursor]
+      doModify content cursors =
+        CursorUtils.moveForwardWord content <$> cursors
+
 
 
 removeCursors :: Window -> Window

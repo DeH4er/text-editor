@@ -138,6 +138,10 @@ interpretAction _ RemoveCursors app =
   return . modifyWindow Window.removeCursors $ app
 
 
+interpretAction _ MoveForwardWord app =
+  return . modifyWindow Window.moveForwardWord $ app
+
+
 onResize :: (Int, Int) -> App -> App
 onResize (width, height) =
   modifyWindow $ Window.resize width height

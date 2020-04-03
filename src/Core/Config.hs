@@ -17,6 +17,7 @@ getBinding (KChar 'i') Normal = Just . SetMode $ Insert
 getBinding (KChar ';') Normal = Just . SetMode $ Command
 getBinding (KChar 'm') Normal = Just MarkPhantom
 getBinding (KChar 's') Normal = Just CreatePhantoms
+getBinding (KChar 'w') Normal = Just MoveForwardWord
 getBinding KEsc        Normal = Just RemoveCursors
 
 getBinding KEsc        Insert = Just . SetMode $ Normal

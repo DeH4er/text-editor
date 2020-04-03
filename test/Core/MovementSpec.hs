@@ -1,11 +1,11 @@
-module Core.CursorUtilsSpec
+module Core.MovementSpec
   (spec
   )
 where
 
 
 import Test.Hspec
-import Core.CursorUtils
+import Core.Movement
 
 import qualified Core.Cursor as Cursor
 import Core.Cursor (Cursor)

@@ -29,7 +29,7 @@ import Core.Utils
 
 import Core.Window.Data
 
-import qualified Core.CursorUtils as CursorUtils
+import qualified Core.Movement as Movement
 
 
 moveEndLine :: Window -> Window
@@ -38,7 +38,7 @@ moveEndLine =
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
-        filterSameCursors . fmap (CursorUtils.moveEndLine content)
+        filterSameCursors . fmap (Movement.moveEndLine content)
 
 
 moveStartLine :: Window -> Window
@@ -47,7 +47,7 @@ moveStartLine =
     where
       doModify :: [Cursor] -> [Cursor]
       doModify =
-        filterSameCursors . fmap CursorUtils.moveStartLine
+        filterSameCursors . fmap Movement.moveStartLine
 
 
 moveForwardWord :: Window -> Window
@@ -56,7 +56,7 @@ moveForwardWord =
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
-        filterSameCursors . fmap (CursorUtils.moveForwardWord content)
+        filterSameCursors . fmap (Movement.moveForwardWord content)
 
 
 removeCursors :: Window -> Window

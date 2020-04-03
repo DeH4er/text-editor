@@ -1,4 +1,4 @@
-module Core.CursorUtils
+module Core.Movement
   ( moveForwardWord
   , moveEndLine
   , moveStartLine

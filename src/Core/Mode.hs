@@ -17,6 +17,7 @@ data Mode
 
 data Action
   = MoveCursors MoveAction
+  | MoveForwardWord
   | SetMode Mode
   | InsertChar Char
   | InsertCharConsole Char

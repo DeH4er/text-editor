@@ -1,5 +1,7 @@
 module Core.Window
-  ( moveForwardWord
+  ( moveEndLine
+  , moveStartLine
+  , moveForwardWord
   , moveCursors
   , insertChar
   , breakLine
@@ -30,14 +32,31 @@ import Core.Window.Data
 import qualified Core.CursorUtils as CursorUtils
 
 
-moveForwardWord :: Window -> Window
-moveForwardWord =
-  modifyCursorsByContent doModify
+moveEndLine :: Window -> Window
+moveEndLine =
+  fitViewByMainCursor . modifyCursorsByContent doModify
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
-      doModify content cursors =
-        CursorUtils.moveForwardWord content <$> cursors
+      doModify content =
+        filterSameCursors . fmap (CursorUtils.moveEndLine content)
 
+
+moveStartLine :: Window -> Window
+moveStartLine =
+  fitViewByMainCursor . modifyCursors doModify
+    where
+      doModify :: [Cursor] -> [Cursor]
+      doModify =
+        filterSameCursors . fmap CursorUtils.moveStartLine
+
+
+moveForwardWord :: Window -> Window
+moveForwardWord =
+  fitViewByMainCursor . modifyCursorsByContent doModify
+    where
+      doModify :: [String] -> [Cursor] -> [Cursor]
+      doModify content =
+        filterSameCursors . fmap (CursorUtils.moveForwardWord content)
 
 
 removeCursors :: Window -> Window

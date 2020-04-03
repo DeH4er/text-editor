@@ -1,5 +1,7 @@
 module Core.CursorUtils
   ( moveForwardWord
+  , moveEndLine
+  , moveStartLine
   )
 where
 
@@ -9,8 +11,6 @@ import Core.Cursor (Cursor, Row, Col)
 
 import qualified Core.Utils as Utils
 import Data.Maybe (fromMaybe)
-
-import Text.Regex.TDFA
 
 
 type Content = [String]
@@ -39,8 +39,8 @@ moveBottom =
   modifyCrop $ \(row, col) -> (row + 1, col)
 
 
-moveEndRow :: Content -> Modify Cursor
-moveEndRow content =
+moveEndLine :: Content -> Modify Cursor
+moveEndLine content =
   Cursor.modify $ \(row, col) -> (row, getEndLine content row)
     where
       getEndLine :: Content -> Row -> Col
@@ -48,8 +48,8 @@ moveEndRow content =
         length $ getRow content row
 
 
-moveStartRow :: Modify Cursor
-moveStartRow =
+moveStartLine :: Modify Cursor
+moveStartLine =
   Cursor.modify $ \(row, col) -> (row, 0)
 
 
@@ -70,11 +70,12 @@ moveForwardWord content cursor =
       doFindNextWord :: Col -> String -> Maybe Col
       doFindNextWord _ [] = Nothing
       doFindNextWord col str =
-        case  drop col str of
+        case drop col str of
           [] ->
             Nothing
-          x : xs ->
-            find (getCharClass x) (col + 1) xs
+          x : xs -> do
+            newCol <- find (getCharClass x) (col + 1) xs
+            findNonSpace newCol $ drop newCol str
 
       findNonSpace :: Col -> String -> Maybe Col
       findNonSpace col [] =
@@ -102,9 +103,9 @@ moveForwardWord content cursor =
       defaultCursor =
         if isLastRow content cursor
           then
-            moveEndRow content cursor
+            moveEndLine content cursor
           else
-            let newCursor = moveStartRow . moveBottom content $ cursor
+            let newCursor = moveStartLine . moveBottom content $ cursor
             in fromMaybe newCursor $ findNextCursorAtRow findNonSpace content newCursor
 
 

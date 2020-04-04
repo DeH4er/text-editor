@@ -409,3 +409,5 @@ getFitTypeByMovement Movement.MForwardEndWord = BottomRight
 getFitTypeByMovement Movement.MBackwardWord = TopLeft
 getFitTypeByMovement Movement.MEndLine = TopLeft
 getFitTypeByMovement Movement.MStartLine = TopLeft
+getFitTypeByMovement Movement.MEndContent = BottomLeft
+getFitTypeByMovement Movement.MStartContent = TopLeft

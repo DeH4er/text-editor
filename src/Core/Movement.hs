@@ -1,5 +1,6 @@
 module Core.Movement
   ( move
+  , backwardWord
   , forwardWord
   , forwardEndWord
   , endLine
@@ -37,15 +38,33 @@ type Modify a = a -> a
 
 
 move :: Movement -> Content -> Modify Cursor
-move MTop = top
-move MBottom = bottom
-move MLeft = left
-move MRight = right
-move MForwardWord = forwardWord
-move MForwardEndWord = forwardEndWord
-move MBackwardWord = backwardWord
-move MEndLine = endLine
-move MStartLine = const startLine
+move MTop =
+  top
+
+move MBottom =
+  bottom
+
+move MLeft =
+  left
+
+move MRight =
+  right
+
+move MForwardWord =
+  forwardWord
+
+move MForwardEndWord =
+  forwardEndWord
+
+move MBackwardWord =
+  backwardWord
+
+move MEndLine =
+  endLine
+
+move MStartLine =
+  const startLine
+
 
 
 left :: Content -> Modify Cursor
@@ -83,18 +102,36 @@ startLine =
 
 
 backwardWord :: Content -> Modify Cursor
-backwardWord =
-  fromMaybe moveStartRow $ movePrevWord <|> movePrevLine
+backwardWord content cursor =
+  fromMaybe (Cursor.new 0 0) $ movePrevWord <|> movePrevLine
     where
-      moveStartRow =
-        undefined
-
+      movePrevWord :: Maybe Cursor
       movePrevWord =
-        undefined
+        findAtRow findPrevWord content cursor
 
+      movePrevLine :: Maybe Cursor
       movePrevLine =
-        undefined
+        if isFirstRow cursor
+          then
+            Nothing
+          else
+            let newCursor = endLine content . top content $ cursor
+            in Just
+            . fromMaybe newCursor
+            . findAtRow findPrevWord content
+            $ newCursor
 
+      findPrevWord :: Col -> String -> Maybe Col
+      findPrevWord origCol origStr = do
+        let
+          str = reverse origStr
+          col = length str - origCol
+
+        i1 <- findNonSpace (col + 1) str
+        let i2 = findCurrentClassEnd (getCharClass $ str !! i1) i1 str
+        let i = i2 - 1
+
+        return $ length str - i - 1
 
 forwardEndWord :: Content -> Modify Cursor
 forwardEndWord content cursor =
@@ -196,6 +233,11 @@ findNonSpace col str = do
 isLastRow :: Content -> Cursor -> Bool
 isLastRow content cursor =
   length content - 1 == Cursor.getRow cursor
+
+
+isFirstRow :: Cursor -> Bool
+isFirstRow =
+  (== 0) . Cursor.getRow
 
 
 modifyCrop :: Modify (Row, Col) -> Content -> Modify Cursor

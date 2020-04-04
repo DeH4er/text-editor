@@ -28,6 +28,8 @@ data Movement =
   | MBackwardWord
   | MEndLine
   | MStartLine
+  | MEndContent
+  | MStartContent
   deriving (Show, Eq)
 
 
@@ -64,6 +66,12 @@ move MEndLine =
 
 move MStartLine =
   const startLine
+
+move MEndContent =
+  endContent
+
+move MStartContent =
+  startContent
 
 
 left :: Content -> Modify Cursor
@@ -188,6 +196,24 @@ forwardWord content cursor =
           x : _ -> do
             i <- findDifferentClass (getCharClass x) (col + 1) str
             findNonSpace i str
+
+
+endContent :: Content -> Modify Cursor
+endContent content cursor =
+  fromMaybe lastRow $ findAtRow findNonSpace content lastRow
+    where
+      lastRow :: Cursor
+      lastRow =
+        Cursor.new (length content - 1) 0
+
+
+startContent :: Content -> Modify Cursor
+startContent content cursor =
+  fromMaybe firstRow $ findAtRow findNonSpace content firstRow
+    where
+      firstRow :: Cursor
+      firstRow =
+        Cursor.new 0 0
 
 
 findWordEnd :: Col -> String -> Maybe Col

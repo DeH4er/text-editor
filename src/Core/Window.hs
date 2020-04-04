@@ -35,8 +35,67 @@ removeCursors =
 
 
 moveCursors :: Movement -> Window -> Window
-moveCursors movement =
-  fitViewByMovement movement . modifyCursorsByContent (doMoveCursors movement)
+moveCursors Movement.MForwardHalfScreen window =
+  modifyRect doView
+  .  modifyCursors doModify
+  $ window
+    where
+      doModify :: [Cursor] -> [Cursor]
+      doModify =
+        filterSameCursors . fmap (Movement.forwardRow half content)
+
+      doView :: Rect -> Rect
+      doView =
+        Rect.translate newRectRow 0
+
+      newRectRow =
+        crop 0 (length content - height) (rectRow + half)
+
+      rectRow =
+        Rect.getRow . getRect $ window
+
+      content =
+        getContent window
+
+      half =
+        height `div` 2
+
+      height =
+        Rect.getHeight . getRect $ window
+
+-- TODO: refactoring, almost same as previous
+moveCursors Movement.MBackwardHalfScreen window =
+  modifyRect doView
+  .  modifyCursors doModify
+  $ window
+    where
+      doModify :: [Cursor] -> [Cursor]
+      doModify =
+        filterSameCursors . fmap (Movement.backwardRow half content)
+
+      doView :: Rect -> Rect
+      doView =
+        Rect.translate newRectRow 0
+
+      newRectRow =
+        crop 0 (length content - height) (rectRow - half)
+
+      rectRow =
+        Rect.getRow . getRect $ window
+
+      content =
+        getContent window
+
+      half =
+        height `div` 2
+
+      height =
+        Rect.getHeight . getRect $ window
+
+moveCursors movement window =
+  fitViewByMovement movement
+  . modifyCursorsByContent (doMoveCursors movement)
+  $ window
     where
       doMoveCursors :: Movement -> [String] -> [Cursor] -> [Cursor]
       doMoveCursors movement content =

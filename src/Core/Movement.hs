@@ -1,5 +1,7 @@
 module Core.Movement
-  ( move
+  ( backwardRow
+  , forwardRow
+  , move
   , backwardWord
   , forwardWord
   , forwardEndWord
@@ -30,6 +32,8 @@ data Movement =
   | MStartLine
   | MEndContent
   | MStartContent
+  | MForwardHalfScreen
+  | MBackwardHalfScreen
   deriving (Show, Eq)
 
 
@@ -208,12 +212,23 @@ endContent content cursor =
 
 
 startContent :: Content -> Modify Cursor
-startContent content cursor =
-  fromMaybe firstRow $ findAtRow findNonSpace content firstRow
+startContent content =
+  const $ fromMaybe firstRow $ findAtRow findNonSpace content firstRow
     where
       firstRow :: Cursor
       firstRow =
         Cursor.new 0 0
+
+
+forwardRow :: Int -> Content -> Modify Cursor
+forwardRow i content cursor =
+  let newCursor = modifyCrop (\(row, col) -> (row + i, 0)) content cursor
+  in fromMaybe newCursor $ findAtRow findNonSpace content newCursor
+
+
+backwardRow :: Int -> Content -> Modify Cursor
+backwardRow i =
+  forwardRow $ -i
 
 
 findWordEnd :: Col -> String -> Maybe Col

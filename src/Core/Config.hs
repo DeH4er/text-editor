@@ -15,6 +15,7 @@ getBinding (KChar 'k') Normal = Just . MoveCursors $ MTop
 getBinding (KChar 'j') Normal = Just . MoveCursors $ MBottom
 getBinding (KChar 'w') Normal = Just . MoveCursors $ MForwardWord
 getBinding (KChar 'e') Normal = Just . MoveCursors $ MForwardEndWord
+getBinding (KChar 'b') Normal = Just . MoveCursors $ MBackwardWord
 getBinding (KChar '$') Normal = Just . MoveCursors $ MEndLine
 getBinding (KChar '0') Normal = Just . MoveCursors $ MStartLine
 getBinding (KChar 'i') Normal = Just . SetMode $ Insert

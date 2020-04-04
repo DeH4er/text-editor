@@ -141,8 +141,14 @@ interpretAction _ RemoveCursors app =
 interpretAction _ MoveForwardWord app =
   return . modifyWindow Window.moveForwardWord $ app
 
+
+interpretAction _ MoveForwardEndWord app =
+  return . modifyWindow Window.moveForwardEndWord $ app
+
+
 interpretAction _ MoveEndLine app =
   return . modifyWindow Window.moveEndLine $ app
+
 
 interpretAction _ MoveStartLine app =
   return . modifyWindow Window.moveStartLine $ app

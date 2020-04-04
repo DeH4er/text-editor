@@ -2,6 +2,7 @@ module Core.Window
   ( moveEndLine
   , moveStartLine
   , moveForwardWord
+  , moveForwardEndWord
   , moveCursors
   , insertChar
   , breakLine
@@ -57,6 +58,15 @@ moveForwardWord =
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
         filterSameCursors . fmap (Movement.moveForwardWord content)
+
+
+moveForwardEndWord :: Window -> Window
+moveForwardEndWord =
+  fitViewByMainCursor . modifyCursorsByContent doModify
+    where
+      doModify :: [String] -> [Cursor] -> [Cursor]
+      doModify content =
+        filterSameCursors . fmap (Movement.moveForwardEndWord content)
 
 
 removeCursors :: Window -> Window

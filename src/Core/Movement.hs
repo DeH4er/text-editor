@@ -1,5 +1,6 @@
 module Core.Movement
   ( moveForwardWord
+  , moveForwardEndWord
   , moveEndLine
   , moveStartLine
   )
@@ -11,6 +12,7 @@ import Core.Cursor (Cursor, Row, Col)
 
 import qualified Core.Utils as Utils
 import Data.Maybe (fromMaybe)
+import Control.Applicative ((<|>))
 
 
 type Content = [String]
@@ -55,67 +57,85 @@ moveStartLine =
 
 moveBackwardWord :: Content -> Modify Cursor
 moveBackwardWord =
-  undefined
+  fromMaybe moveStartRow $ movePrevWord <|> movePrevLine
+    where
+      moveStartRow =
+        undefined
+
+      movePrevWord =
+        undefined
+
+      movePrevLine =
+        undefined
 
 
 moveForwardEndWord :: Content -> Modify Cursor
-moveForwardEndWord =
-  undefined
+moveForwardEndWord content cursor =
+  fromMaybe moveEndRow $ moveNextWord <|> moveNextLine
+    where
+      moveNextWord :: Maybe Cursor
+      moveNextWord =
+        findNextAtRow findNextWord content cursor
+
+      moveNextLine :: Maybe Cursor
+      moveNextLine =
+        if isLastRow content cursor
+          then
+            Nothing
+          else
+            Just
+            . moveForwardEndWord content
+            . moveStartLine
+            . moveBottom content
+            $ cursor
+
+      moveEndRow :: Cursor
+      moveEndRow =
+        moveEndLine content cursor
+
+      findNextWord :: Col -> String -> Maybe Col
+      findNextWord col str = do
+        i1 <- findNonSpace (col + 1) str
+        let i2 = findCurrentClassEnd (getCharClass $ str !! i1) i1 str
+        return $ i2 - 1
 
 
 moveForwardWord :: Content -> Modify Cursor
 moveForwardWord content cursor =
-  fromMaybe defaultCursor $ findNextCursorAtRow doFindNextWord content cursor
+  fromMaybe moveEndRow $ moveNextWord <|> moveNextLine
     where
-      doFindNextWord :: Col -> String -> Maybe Col
-      doFindNextWord _ [] = Nothing
-      doFindNextWord col str =
+      moveNextWord :: Maybe Cursor
+      moveNextWord =
+        findNextAtRow findNextWord content cursor
+
+      moveNextLine :: Maybe Cursor
+      moveNextLine =
+        if isLastRow content cursor
+          then
+            Nothing
+          else
+            findNextAtRow findNonSpace content
+            . moveStartLine
+            . moveBottom content
+            $ cursor
+
+      moveEndRow :: Cursor
+      moveEndRow =
+        moveEndLine content cursor
+
+      findNextWord :: Col -> String -> Maybe Col
+      findNextWord _ [] = Nothing
+      findNextWord col str =
         case drop col str of
           [] ->
             Nothing
-          x : xs -> do
-            newCol <- find (getCharClass x) (col + 1) xs
-            findNonSpace newCol $ drop newCol str
-
-      findNonSpace :: Col -> String -> Maybe Col
-      findNonSpace col [] =
-        Nothing
-
-      findNonSpace col (x:xs) =
-        if getCharClass x /= WhiteSpace
-          then
-            Just col
-          else
-            findNonSpace (col + 1) xs
-
-      find :: CharClass -> Col -> String -> Maybe Col
-      find _ _ [] =
-        Nothing
-
-      find cls col (x:xs) =
-        if cls /= getCharClass x
-          then
-            Just  col
-          else
-            find cls (col + 1) xs
-
-      defaultCursor :: Cursor
-      defaultCursor =
-        if isLastRow content cursor
-          then
-            moveEndLine content cursor
-          else
-            let newCursor = moveStartLine . moveBottom content $ cursor
-            in fromMaybe newCursor $ findNextCursorAtRow findNonSpace content newCursor
+          x : _ -> do
+            i <- findDifferentClass (getCharClass x) (col + 1) str
+            findNonSpace i str
 
 
-isLastRow :: Content -> Cursor -> Bool
-isLastRow content cursor =
-  length content - 1 == Cursor.getRow cursor
-
-
-findNextCursorAtRow :: (Col -> String -> Maybe Col) -> Content -> Cursor -> Maybe Cursor
-findNextCursorAtRow f content cursor = do
+findNextAtRow :: (Col -> String -> Maybe Col) -> Content -> Cursor -> Maybe Cursor
+findNextAtRow f content cursor = do
   rowStr <- getMaybeRow content row
   newCol <- f col rowStr
   return $ moveToCol newCol cursor
@@ -128,17 +148,26 @@ findNextCursorAtRow f content cursor = do
       Cursor.getRowCol cursor
 
 
-findNextPosition :: (Char -> Bool) -> Int -> String -> Maybe Int
+findDifferentClass :: CharClass -> Col -> String -> Maybe Col
+findDifferentClass cls col str = do
+  i <- Utils.findIndex (\x -> getCharClass x /= cls) $ drop col str
+  return $ i + col
 
-findNextPosition f pos [] =
-  Nothing
 
-findNextPosition f pos (x:xs) =
-  if not $ f x
-    then
-      findNextPosition f pos xs
-    else
-      Just pos
+findCurrentClassEnd :: CharClass -> Col -> String -> Col
+findCurrentClassEnd cls col str =
+  fromMaybe (length str) $ findDifferentClass cls col str
+
+
+findNonSpace :: Col -> String -> Maybe Col
+findNonSpace col str = do
+  i <- Utils.findIndex (\x -> getCharClass x /= WhiteSpace) $ drop col str
+  return $ i + col
+
+
+isLastRow :: Content -> Cursor -> Bool
+isLastRow content cursor =
+  length content - 1 == Cursor.getRow cursor
 
 
 modifyCrop :: Modify (Row, Col) -> Content -> Modify Cursor

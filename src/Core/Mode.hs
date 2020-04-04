@@ -5,7 +5,7 @@ module Core.Mode
 where
 
 import Core.Event
-import Core.MoveAction
+import Core.Movement
 
 
 data Mode
@@ -16,11 +16,7 @@ data Mode
 
 
 data Action
-  = MoveCursors MoveAction
-  | MoveForwardWord
-  | MoveForwardEndWord
-  | MoveEndLine
-  | MoveStartLine
+  = MoveCursors Movement
   | SetMode Mode
   | InsertChar Char
   | InsertCharConsole Char

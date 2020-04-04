@@ -1,9 +1,5 @@
 module Core.Window
-  ( moveEndLine
-  , moveStartLine
-  , moveForwardWord
-  , moveForwardEndWord
-  , moveCursors
+  ( moveCursors
   , insertChar
   , breakLine
   , deleteChar
@@ -25,48 +21,12 @@ import Core.Buffer (Buffer)
 import qualified Core.Cursor as Cursor
 import Core.Cursor (Cursor)
 
-import Core.MoveAction
 import Core.Utils
 
 import Core.Window.Data
 
 import qualified Core.Movement as Movement
-
-
-moveEndLine :: Window -> Window
-moveEndLine =
-  fitViewByMainCursor . modifyCursorsByContent doModify
-    where
-      doModify :: [String] -> [Cursor] -> [Cursor]
-      doModify content =
-        filterSameCursors . fmap (Movement.endLine content)
-
-
-moveStartLine :: Window -> Window
-moveStartLine =
-  fitViewByMainCursor . modifyCursors doModify
-    where
-      doModify :: [Cursor] -> [Cursor]
-      doModify =
-        filterSameCursors . fmap Movement.startLine
-
-
-moveForwardWord :: Window -> Window
-moveForwardWord =
-  fitViewByMainCursor . modifyCursorsByContent doModify
-    where
-      doModify :: [String] -> [Cursor] -> [Cursor]
-      doModify content =
-        filterSameCursors . fmap (Movement.forwardWord content)
-
-
-moveForwardEndWord :: Window -> Window
-moveForwardEndWord =
-  fitViewByMainCursor . modifyCursorsByContent doModify
-    where
-      doModify :: [String] -> [Cursor] -> [Cursor]
-      doModify content =
-        filterSameCursors . fmap (Movement.forwardEndWord content)
+import Core.Movement (Movement)
 
 
 removeCursors :: Window -> Window
@@ -74,13 +34,13 @@ removeCursors =
   modifyAdditionalCursors $ const []
 
 
-moveCursors :: MoveAction -> Window -> Window
-moveCursors action =
-  fitViewByMainCursor . modifyCursorsByContent (doMoveCursors action)
+moveCursors :: Movement -> Window -> Window
+moveCursors movement =
+  fitViewByMovement movement . modifyCursorsByContent (doMoveCursors movement)
     where
-      doMoveCursors :: MoveAction -> [String] -> [Cursor] -> [Cursor]
-      doMoveCursors action content =
-        filterSameCursors . fmap (moveCursor action content)
+      doMoveCursors :: Movement -> [String] -> [Cursor] -> [Cursor]
+      doMoveCursors movement content =
+        filterSameCursors . fmap (Movement.move movement content)
 
 
 insertChar :: Char -> Window -> Window
@@ -246,7 +206,8 @@ createPhantoms =
 
 
 filterSameGroupedCursors :: [[Cursor]] -> [[Cursor]]
-filterSameGroupedCursors = fmap removeDuplicates
+filterSameGroupedCursors =
+  fmap removeDuplicates
 
 
 filterSameCursors :: [Cursor] -> [Cursor]
@@ -265,6 +226,25 @@ modifyGroupedCursorsByContent f window =
 modifyContentByGroupedCursors :: ([[Cursor]] -> [String] -> [String]) -> Window -> Window
 modifyContentByGroupedCursors f window =
   modifyContent (f $ getGroupedCursors window) window
+
+
+fitViewByMovement :: Movement -> Window -> Window
+fitViewByMovement movement =
+  fitView $ getFitTypeByMovement movement
+
+
+fitView :: FitType -> Window -> Window
+fitView TopLeft window =
+  fitViewByCursor (getTopLeftCursor window) window
+
+fitView TopRight window =
+  fitViewByCursor (getTopRightCursor window) window
+
+fitView BottomLeft window =
+  fitViewByCursor (getBottomLeftCursor window) window
+
+fitView BottomRight window =
+  fitViewByCursor (getBottomRightCursor window) window
 
 
 fitViewByMainCursor :: Window -> Window
@@ -312,6 +292,26 @@ fitViewByCursor =
               Cursor.getRowCol cursor
 
 
+getTopLeftCursor :: Window -> Cursor
+getTopLeftCursor =
+  head . head . getGroupedCursors
+
+
+getTopRightCursor :: Window -> Cursor
+getTopRightCursor =
+  last . head . getGroupedCursors
+
+
+getBottomLeftCursor :: Window -> Cursor
+getBottomLeftCursor =
+  head . last . getGroupedCursors
+
+
+getBottomRightCursor :: Window -> Cursor
+getBottomRightCursor =
+  last . last . getGroupedCursors
+
+
 getGroupedCursors :: Window -> [[Cursor]]
 getGroupedCursors =
   groupCursors . getAllCursors
@@ -338,17 +338,6 @@ groupCursors =
 
       sortByRow :: [Cursor] -> [Cursor]
       sortByRow = sortOn Cursor.getRow
-
-
-moveCursor :: MoveAction -> [String] -> Cursor -> Cursor
-moveCursor action content cursor =
-  cropped
-    where
-      cropped =
-        cropCursor content `Cursor.modify` moved
-
-      moved =
-        applyMoveAction action `Cursor.modify` cursor
 
 
 cropCursor :: [String] -> (Cursor.Row, Cursor.Col) -> (Cursor.Row, Cursor.Col)
@@ -400,3 +389,23 @@ joinLinesUp 1 (x1:x2:xs) =
 
 joinLinesUp row (x:xs) =
   x : joinLinesUp (row - 1) xs
+
+
+data FitType =
+  TopLeft
+  | TopRight
+  | BottomLeft
+  | BottomRight
+  deriving (Show, Eq)
+
+
+getFitTypeByMovement :: Movement -> FitType
+getFitTypeByMovement Movement.MTop = TopLeft
+getFitTypeByMovement Movement.MBottom = BottomLeft
+getFitTypeByMovement Movement.MRight = TopRight
+getFitTypeByMovement Movement.MLeft = TopLeft
+getFitTypeByMovement Movement.MForwardWord = BottomRight
+getFitTypeByMovement Movement.MForwardEndWord = BottomRight
+getFitTypeByMovement Movement.MBackwardWord = TopLeft
+getFitTypeByMovement Movement.MEndLine = TopLeft
+getFitTypeByMovement Movement.MStartLine = TopLeft

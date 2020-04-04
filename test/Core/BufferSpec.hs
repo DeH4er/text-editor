@@ -5,7 +5,6 @@ where
 
 
 import Test.Hspec
-import Core.MoveAction
 import qualified Core.Buffer as Buffer
 
 

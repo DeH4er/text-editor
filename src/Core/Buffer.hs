@@ -11,7 +11,6 @@ where
 
 import qualified Core.Cursor as Cursor
 import Core.Utils
-import Core.MoveAction
 
 
 data Buffer =

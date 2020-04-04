@@ -39,7 +39,7 @@ moveEndLine =
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
-        filterSameCursors . fmap (Movement.moveEndLine content)
+        filterSameCursors . fmap (Movement.endLine content)
 
 
 moveStartLine :: Window -> Window
@@ -48,7 +48,7 @@ moveStartLine =
     where
       doModify :: [Cursor] -> [Cursor]
       doModify =
-        filterSameCursors . fmap Movement.moveStartLine
+        filterSameCursors . fmap Movement.startLine
 
 
 moveForwardWord :: Window -> Window
@@ -57,7 +57,7 @@ moveForwardWord =
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
-        filterSameCursors . fmap (Movement.moveForwardWord content)
+        filterSameCursors . fmap (Movement.forwardWord content)
 
 
 moveForwardEndWord :: Window -> Window
@@ -66,7 +66,7 @@ moveForwardEndWord =
     where
       doModify :: [String] -> [Cursor] -> [Cursor]
       doModify content =
-        filterSameCursors . fmap (Movement.moveForwardEndWord content)
+        filterSameCursors . fmap (Movement.forwardEndWord content)
 
 
 removeCursors :: Window -> Window

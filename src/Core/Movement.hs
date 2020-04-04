@@ -1,8 +1,10 @@
 module Core.Movement
-  ( forwardWord
+  ( move
+  , forwardWord
   , forwardEndWord
   , endLine
   , startLine
+  , Movement (..)
   )
 where
 
@@ -15,10 +17,34 @@ import Data.Maybe (fromMaybe)
 import Control.Applicative ((<|>))
 
 
+data Movement =
+  MTop
+  | MBottom
+  | MLeft
+  | MRight
+  | MForwardWord
+  | MForwardEndWord
+  | MBackwardWord
+  | MEndLine
+  | MStartLine
+  deriving (Show, Eq)
+
+
 type Content = [String]
 
 
 type Modify a = a -> a
+
+
+move :: Movement -> Content -> Modify Cursor
+move MTop = top
+move MBottom = bottom
+move MLeft = left
+move MRight = right
+move MForwardWord = forwardWord
+move MBackwardWord = backwardWord
+move MEndLine = endLine
+move MStartLine = const startLine
 
 
 left :: Content -> Modify Cursor
@@ -28,7 +54,7 @@ left =
 
 right :: Content -> Modify Cursor
 right =
-  modifyCrop $ \(row, col) -> (row, col - 1)
+  modifyCrop $ \(row, col) -> (row, col + 1)
 
 
 top :: Content -> Modify Cursor

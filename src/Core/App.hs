@@ -20,7 +20,6 @@ import Core.Console (Console)
 
 import qualified Core.Config as Config
 
-import Core.MoveAction
 import Core.Mode
 import Core.Event
 import Core.Fs
@@ -50,8 +49,8 @@ interpretActionIO =
 interpretAction :: Monad m => FsService m -> Action -> App -> m App
 
 
-interpretAction _ (MoveCursors action) app =
-  return . modifyWindow (Window.moveCursors action) $ app
+interpretAction _ (MoveCursors movement) app =
+  return . modifyWindow (Window.moveCursors movement) $ app
 
 
 interpretAction _ (InsertChar char) app =
@@ -136,22 +135,6 @@ interpretAction _ CreatePhantoms app =
 
 interpretAction _ RemoveCursors app =
   return . modifyWindow Window.removeCursors $ app
-
-
-interpretAction _ MoveForwardWord app =
-  return . modifyWindow Window.moveForwardWord $ app
-
-
-interpretAction _ MoveForwardEndWord app =
-  return . modifyWindow Window.moveForwardEndWord $ app
-
-
-interpretAction _ MoveEndLine app =
-  return . modifyWindow Window.moveEndLine $ app
-
-
-interpretAction _ MoveStartLine app =
-  return . modifyWindow Window.moveStartLine $ app
 
 
 onResize :: (Int, Int) -> App -> App

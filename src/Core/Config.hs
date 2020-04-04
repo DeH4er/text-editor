@@ -6,21 +6,21 @@ where
 
 import Core.Mode
 import Core.Event
-import Core.MoveAction
+import Core.Movement
 
 getBinding :: Key -> Mode -> Maybe Action
-getBinding (KChar 'h') Normal = Just . MoveCursors $ moveLeft 1
-getBinding (KChar 'l') Normal = Just . MoveCursors $ moveRight 1
-getBinding (KChar 'k') Normal = Just . MoveCursors $ moveTop 1
-getBinding (KChar 'j') Normal = Just . MoveCursors $ moveBottom 1
+getBinding (KChar 'h') Normal = Just . MoveCursors $ MLeft
+getBinding (KChar 'l') Normal = Just . MoveCursors $ MRight
+getBinding (KChar 'k') Normal = Just . MoveCursors $ MTop
+getBinding (KChar 'j') Normal = Just . MoveCursors $ MBottom
+getBinding (KChar 'w') Normal = Just . MoveCursors $ MForwardWord
+getBinding (KChar 'e') Normal = Just . MoveCursors $ MForwardEndWord
+getBinding (KChar '$') Normal = Just . MoveCursors $ MEndLine
+getBinding (KChar '0') Normal = Just . MoveCursors $ MStartLine
 getBinding (KChar 'i') Normal = Just . SetMode $ Insert
 getBinding (KChar ';') Normal = Just . SetMode $ Command
 getBinding (KChar 'm') Normal = Just MarkPhantom
 getBinding (KChar 's') Normal = Just CreatePhantoms
-getBinding (KChar 'w') Normal = Just MoveForwardWord
-getBinding (KChar 'e') Normal = Just MoveForwardEndWord
-getBinding (KChar '$') Normal = Just MoveEndLine
-getBinding (KChar '0') Normal = Just MoveStartLine
 getBinding KEsc        Normal = Just RemoveCursors
 
 getBinding KEsc        Insert = Just . SetMode $ Normal

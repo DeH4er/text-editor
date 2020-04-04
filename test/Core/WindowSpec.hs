@@ -16,7 +16,7 @@ import Core.Window (Window)
 
 import qualified Core.Window.Rect as Rect
 
-import Core.MoveAction
+import Core.Movement
 
 
 spec = do
@@ -33,63 +33,63 @@ spec = do
   describe "Move single window cursor" $ do
     context "in middle of text" $ do
       it "move left" $ do
-        Window.moveCursors (MLeft 1) testWindow1CursorMiddle
+        Window.moveCursors MLeft testWindow1CursorMiddle
           `shouldHaveCursor` Cursor.new 3 2
 
       it "move right" $ do
-        Window.moveCursors (MRight 1) testWindow1CursorMiddle
+        Window.moveCursors MRight testWindow1CursorMiddle
           `shouldHaveCursor` Cursor.new 3 4
 
       it "move top" $ do
-        Window.moveCursors (MTop 1) testWindow1CursorMiddle
+        Window.moveCursors MTop testWindow1CursorMiddle
           `shouldHaveCursor` Cursor.new 2 3
 
       it "move bottom" $ do
-        Window.moveCursors (MBottom 1) testWindow1CursorMiddle
+        Window.moveCursors MBottom testWindow1CursorMiddle
           `shouldHaveCursor` Cursor.new 4 3
 
     context "at borders" $ do
       it "move left" $ do
-        Window.moveCursors (MLeft 1) testWindow
+        Window.moveCursors MLeft testWindow
           `shouldHaveCursor` Cursor.new 0 0
 
       it "move right" $ do
-        Window.moveCursors (MRight 1) (Window.modifyCursors (const $ [Cursor.new 0 6]) testWindow)
+        Window.moveCursors MRight (Window.modifyCursors (const $ [Cursor.new 0 6]) testWindow)
           `shouldHaveCursor` Cursor.new 0 6
 
       it "move top" $ do
-        Window.moveCursors (MTop 1) testWindow
+        Window.moveCursors MTop testWindow
           `shouldHaveCursor` Cursor.new 0 0
 
       it "move bottom" $ do
-        Window.moveCursors (MBottom 1) (Window.modifyCursors (const $ [Cursor.new 5 0]) testWindow)
+        Window.moveCursors MBottom (Window.modifyCursors (const $ [Cursor.new 5 0]) testWindow)
           `shouldHaveCursor` Cursor.new 5 0
 
   describe "Move three window cursors" $ do
     context "in middle of text" $ do
       it "move left" $ do
-        let win = Window.moveCursors (MLeft 1) testWindow3CursorsMiddle
+        let win = Window.moveCursors MLeft testWindow3CursorsMiddle
         length (Window.getAllCursors win) `shouldBe` 3
         win `shouldHaveCursor` Cursor.new 4 2
         win `shouldHaveCursor` Cursor.new 3 2
         win `shouldHaveCursor` Cursor.new 2 2
 
       it "move right" $ do
-        let win = Window.moveCursors (MRight 1) testWindow3CursorsMiddle
+        let win = Window.moveCursors MRight testWindow3CursorsMiddle
         length (Window.getAllCursors win) `shouldBe` 3
         win `shouldHaveCursor` Cursor.new 4 4
         win `shouldHaveCursor` Cursor.new 3 4
         win `shouldHaveCursor` Cursor.new 2 4
 
       it "move top" $ do
-        let win = Window.moveCursors (MTop 1) testWindow3CursorsMiddle
+        let win = Window.moveCursors MTop testWindow3CursorsMiddle
         length (Window.getAllCursors win) `shouldBe` 3
         win `shouldHaveCursor` Cursor.new 3 3
         win `shouldHaveCursor` Cursor.new 2 3
         win `shouldHaveCursor` Cursor.new 1 3
 
       it "move bottom" $ do
-        let win = Window.moveCursors (MBottom 1) testWindow3CursorsMiddle
+        let win = Window.moveCursors MBottom testWindow3CursorsMiddle
         length (Window.getAllCursors win) `shouldBe` 3
         win `shouldHaveCursor` Cursor.new 5 3
         win `shouldHaveCursor` Cursor.new 4 3
@@ -99,8 +99,8 @@ spec = do
       it "splash at left edge" $ do
         let
           win1 = Window.modifyCursors (const $ [Cursor.new 1 0, Cursor.new 1 1, Cursor.new 1 2]) testWindow
-          win2 = Window.moveCursors (MLeft 1) win1
-          win3 = Window.moveCursors (MLeft 1) win2
+          win2 = Window.moveCursors MLeft win1
+          win3 = Window.moveCursors MLeft win2
 
         length (Window.getAllCursors win2) `shouldBe` 2
         win2 `shouldHaveCursor` Cursor.new 1 0
@@ -112,8 +112,8 @@ spec = do
       it "splash at right edge" $ do
         let
           win1 = Window.modifyCursors (const $ [Cursor.new 1 6, Cursor.new 1 5, Cursor.new 1 4]) testWindow
-          win2 = Window.moveCursors (MRight 1) win1
-          win3 = Window.moveCursors (MRight 1) win2
+          win2 = Window.moveCursors MRight win1
+          win3 = Window.moveCursors MRight win2
 
         length (Window.getAllCursors win2) `shouldBe` 2
         win2 `shouldHaveCursor` Cursor.new 1 6
@@ -125,8 +125,8 @@ spec = do
       it "splash at top edge" $ do
         let
           win1 = Window.modifyCursors (const $ [Cursor.new 0 3, Cursor.new 1 3, Cursor.new 2 3]) testWindow
-          win2 = Window.moveCursors (MTop 1) win1
-          win3 = Window.moveCursors (MTop 1) win2
+          win2 = Window.moveCursors MTop win1
+          win3 = Window.moveCursors MTop win2
 
         length (Window.getAllCursors win2) `shouldBe` 2
         win2 `shouldHaveCursor` Cursor.new 0 3
@@ -138,8 +138,8 @@ spec = do
       it "splash at bottom edge" $ do
         let
           win1 = Window.modifyCursors (const $ [Cursor.new 5 3, Cursor.new 4 3, Cursor.new 3 3]) testWindow
-          win2 = Window.moveCursors (MBottom 1) win1
-          win3 = Window.moveCursors (MBottom 1) win2
+          win2 = Window.moveCursors MBottom win1
+          win3 = Window.moveCursors MBottom win2
 
         length (Window.getAllCursors win2) `shouldBe` 2
         win2 `shouldHaveCursor` Cursor.new 5 3

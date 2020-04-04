@@ -42,6 +42,7 @@ move MBottom = bottom
 move MLeft = left
 move MRight = right
 move MForwardWord = forwardWord
+move MForwardEndWord = forwardEndWord
 move MBackwardWord = backwardWord
 move MEndLine = endLine
 move MStartLine = const startLine

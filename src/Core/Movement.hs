@@ -66,7 +66,6 @@ move MStartLine =
   const startLine
 
 
-
 left :: Content -> Modify Cursor
 left =
   modifyCrop $ \(row, col) -> (row, col - 1)

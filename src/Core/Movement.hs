@@ -126,11 +126,9 @@ backwardWord content cursor =
           str = reverse origStr
           col = length str - origCol
 
-        i1 <- findNonSpace (col + 1) str
-        let i2 = findCurrentClassEnd (getCharClass $ str !! i1) i1 str
-        let i = i2 - 1
-
+        i <- findWordEnd col str
         return $ length str - i - 1
+
 
 forwardEndWord :: Content -> Modify Cursor
 forwardEndWord content cursor =
@@ -138,7 +136,7 @@ forwardEndWord content cursor =
     where
       moveNextWord :: Maybe Cursor
       moveNextWord =
-        findAtRow findNextWord content cursor
+        findAtRow findWordEnd content cursor
 
       moveNextLine :: Maybe Cursor
       moveNextLine =
@@ -155,12 +153,6 @@ forwardEndWord content cursor =
       moveEndRow :: Cursor
       moveEndRow =
         endLine content cursor
-
-      findNextWord :: Col -> String -> Maybe Col
-      findNextWord col str = do
-        i1 <- findNonSpace (col + 1) str
-        let i2 = findCurrentClassEnd (getCharClass $ str !! i1) i1 str
-        return $ i2 - 1
 
 
 forwardWord :: Content -> Modify Cursor
@@ -196,6 +188,13 @@ forwardWord content cursor =
           x : _ -> do
             i <- findDifferentClass (getCharClass x) (col + 1) str
             findNonSpace i str
+
+
+findWordEnd :: Col -> String -> Maybe Col
+findWordEnd col str = do
+  i1 <- findNonSpace (col + 1) str
+  let i2 = findCurrentClassEnd (getCharClass $ str !! i1) i1 str
+  return $ i2 - 1
 
 
 findAtRow :: (Col -> String -> Maybe Col) -> Content -> Cursor -> Maybe Cursor

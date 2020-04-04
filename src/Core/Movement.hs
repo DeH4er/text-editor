@@ -1,8 +1,8 @@
 module Core.Movement
-  ( moveForwardWord
-  , moveForwardEndWord
-  , moveEndLine
-  , moveStartLine
+  ( forwardWord
+  , forwardEndWord
+  , endLine
+  , startLine
   )
 where
 
@@ -21,28 +21,28 @@ type Content = [String]
 type Modify a = a -> a
 
 
-moveLeft :: Content -> Modify Cursor
-moveLeft =
+left :: Content -> Modify Cursor
+left =
   modifyCrop $ \(row, col) -> (row, col - 1)
 
 
-moveRight :: Content -> Modify Cursor
-moveRight =
+right :: Content -> Modify Cursor
+right =
   modifyCrop $ \(row, col) -> (row, col - 1)
 
 
-moveTop :: Content -> Modify Cursor
-moveTop =
+top :: Content -> Modify Cursor
+top =
   modifyCrop $ \(row, col) -> (row - 1, col)
 
 
-moveBottom :: Content -> Modify Cursor
-moveBottom =
+bottom :: Content -> Modify Cursor
+bottom =
   modifyCrop $ \(row, col) -> (row + 1, col)
 
 
-moveEndLine :: Content -> Modify Cursor
-moveEndLine content =
+endLine :: Content -> Modify Cursor
+endLine content =
   Cursor.modify $ \(row, col) -> (row, getEndLine content row)
     where
       getEndLine :: Content -> Row -> Col
@@ -50,13 +50,13 @@ moveEndLine content =
         length $ getRow content row
 
 
-moveStartLine :: Modify Cursor
-moveStartLine =
+startLine :: Modify Cursor
+startLine =
   Cursor.modify $ \(row, col) -> (row, 0)
 
 
-moveBackwardWord :: Content -> Modify Cursor
-moveBackwardWord =
+backwardWord :: Content -> Modify Cursor
+backwardWord =
   fromMaybe moveStartRow $ movePrevWord <|> movePrevLine
     where
       moveStartRow =
@@ -69,8 +69,8 @@ moveBackwardWord =
         undefined
 
 
-moveForwardEndWord :: Content -> Modify Cursor
-moveForwardEndWord content cursor =
+forwardEndWord :: Content -> Modify Cursor
+forwardEndWord content cursor =
   fromMaybe moveEndRow $ moveNextWord <|> moveNextLine
     where
       moveNextWord :: Maybe Cursor
@@ -84,14 +84,14 @@ moveForwardEndWord content cursor =
             Nothing
           else
             Just
-            . moveForwardEndWord content
-            . moveStartLine
-            . moveBottom content
+            . forwardEndWord content
+            . startLine
+            . bottom content
             $ cursor
 
       moveEndRow :: Cursor
       moveEndRow =
-        moveEndLine content cursor
+        endLine content cursor
 
       findNextWord :: Col -> String -> Maybe Col
       findNextWord col str = do
@@ -100,8 +100,8 @@ moveForwardEndWord content cursor =
         return $ i2 - 1
 
 
-moveForwardWord :: Content -> Modify Cursor
-moveForwardWord content cursor =
+forwardWord :: Content -> Modify Cursor
+forwardWord content cursor =
   fromMaybe moveEndRow $ moveNextWord <|> moveNextLine
     where
       moveNextWord :: Maybe Cursor
@@ -114,7 +114,7 @@ moveForwardWord content cursor =
           then
             Nothing
           else
-            let newCursor = moveStartLine . moveBottom content $ cursor
+            let newCursor = startLine . bottom content $ cursor
             in Just
             . fromMaybe newCursor
             . findAtRow findNonSpace content
@@ -122,7 +122,7 @@ moveForwardWord content cursor =
 
       moveEndRow :: Cursor
       moveEndRow =
-        moveEndLine content cursor
+        endLine content cursor
 
       findNextWord :: Col -> String -> Maybe Col
       findNextWord _ [] = Nothing

@@ -18,6 +18,7 @@ data Mode
 data Action
   = MoveCursors MoveAction
   | MoveForwardWord
+  | MoveForwardEndWord
   | MoveEndLine
   | MoveStartLine
   | SetMode Mode

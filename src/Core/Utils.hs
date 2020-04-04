@@ -1,5 +1,6 @@
 module Core.Utils
-  ( crop
+  ( findIndex
+  , crop
   , modifyAt
   , insertAt
   , cropMin
@@ -70,3 +71,18 @@ removeDuplicates = foldl doRemove []
     doRemove seen x
       | x `elem` seen = seen
       | otherwise = seen ++ [x]
+
+
+findIndex :: (a -> Bool) -> [a] -> Maybe Int
+findIndex =
+  doFind 0
+    where
+      doFind :: Int -> (a -> Bool) -> [a] -> Maybe Int
+      doFind _ _ [] =
+        Nothing
+
+      doFind i f (x:xs) =
+        if f x then
+          Just i
+        else
+          doFind (i + 1) f xs

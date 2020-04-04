@@ -75,7 +75,7 @@ moveForwardEndWord content cursor =
     where
       moveNextWord :: Maybe Cursor
       moveNextWord =
-        findNextAtRow findNextWord content cursor
+        findAtRow findNextWord content cursor
 
       moveNextLine :: Maybe Cursor
       moveNextLine =
@@ -106,7 +106,7 @@ moveForwardWord content cursor =
     where
       moveNextWord :: Maybe Cursor
       moveNextWord =
-        findNextAtRow findNextWord content cursor
+        findAtRow findNextWord content cursor
 
       moveNextLine :: Maybe Cursor
       moveNextLine =
@@ -114,10 +114,11 @@ moveForwardWord content cursor =
           then
             Nothing
           else
-            findNextAtRow findNonSpace content
-            . moveStartLine
-            . moveBottom content
-            $ cursor
+            let newCursor = moveStartLine . moveBottom content $ cursor
+            in Just
+            . fromMaybe newCursor
+            . findAtRow findNonSpace content
+            $ newCursor
 
       moveEndRow :: Cursor
       moveEndRow =
@@ -134,8 +135,8 @@ moveForwardWord content cursor =
             findNonSpace i str
 
 
-findNextAtRow :: (Col -> String -> Maybe Col) -> Content -> Cursor -> Maybe Cursor
-findNextAtRow f content cursor = do
+findAtRow :: (Col -> String -> Maybe Col) -> Content -> Cursor -> Maybe Cursor
+findAtRow f content cursor = do
   rowStr <- getMaybeRow content row
   newCol <- f col rowStr
   return $ moveToCol newCol cursor

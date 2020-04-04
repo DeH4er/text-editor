@@ -246,12 +246,13 @@ data CharClass =
 
 
 getCharClass :: Char -> CharClass
+getCharClass '\'' = Punctuation
+getCharClass '\\' = Punctuation
 getCharClass ',' = Punctuation
 getCharClass '.' = Punctuation
 getCharClass '!' = Punctuation
 getCharClass '?' = Punctuation
 getCharClass '"' = Punctuation
-getCharClass '\'' = Punctuation
 getCharClass '=' = Punctuation
 getCharClass '-' = Punctuation
 getCharClass ':' = Punctuation
@@ -265,7 +266,6 @@ getCharClass '%' = Punctuation
 getCharClass '^' = Punctuation
 getCharClass '&' = Punctuation
 getCharClass '*' = Punctuation
-getCharClass '\\' = Punctuation
 getCharClass '/' = Punctuation
 getCharClass '~' = Punctuation
 

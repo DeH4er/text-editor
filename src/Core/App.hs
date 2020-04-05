@@ -156,6 +156,9 @@ interpretAction _ CreatePhantoms app =
 interpretAction _ RemoveCursors app =
   return . modifyWindow Window.removeCursors $ app
 
+interpretAction _ (Delete movement) app =
+  return . modifyWindow (Window.deleteContent movement) $ app
+
 
 onResize :: (Int, Int) -> App -> App
 onResize (width, height) =

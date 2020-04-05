@@ -11,6 +11,9 @@ module Core.App.Data
   , getMode
   , getConsole
   , modifyConsole
+  , pushCommandAcc
+  , clearCommandAcc
+  , getCommandAcc
   )
 where
 
@@ -25,6 +28,7 @@ import Core.Mode (Mode)
 
 import qualified Core.Console as Console
 import Core.Console (Console)
+import Core.Event (Key)
 
 data App =
   App
@@ -32,6 +36,7 @@ data App =
   , appClose :: Bool
   , appMode :: Mode
   , appConsole :: Console
+  , appCommandAcc :: [Key]
   }
   deriving (Show)
 
@@ -43,7 +48,23 @@ empty =
   , appClose = False
   , appMode = Mode.Normal
   , appConsole = Console.empty
+  , appCommandAcc = []
   }
+
+
+getCommandAcc :: App -> [Key]
+getCommandAcc =
+  appCommandAcc
+
+
+clearCommandAcc :: App -> App
+clearCommandAcc app =
+  app {appCommandAcc = []}
+
+
+pushCommandAcc :: Key -> App -> App
+pushCommandAcc key app =
+  app {appCommandAcc = getCommandAcc app <> [key]}
 
 
 getContent :: App -> [String]

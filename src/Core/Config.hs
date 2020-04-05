@@ -1,6 +1,7 @@
 module Core.Config
   ( getBinding
   , getCommand
+  , CommandState (..)
   )
 where
 
@@ -8,37 +9,85 @@ import Core.Mode
 import Core.Event
 import Core.Movement
 
-getBinding :: Key -> Mode -> Maybe Action
-getBinding (KChar 'h') Normal = Just . MoveCursors $ MLeft
-getBinding (KChar 'l') Normal = Just . MoveCursors $ MRight
-getBinding (KChar 'k') Normal = Just . MoveCursors $ MTop
-getBinding (KChar 'j') Normal = Just . MoveCursors $ MBottom
-getBinding (KChar 'w') Normal = Just . MoveCursors $ MForwardWord
-getBinding (KChar 'e') Normal = Just . MoveCursors $ MForwardEndWord
-getBinding (KChar 'b') Normal = Just . MoveCursors $ MBackwardWord
-getBinding (KChar '$') Normal = Just . MoveCursors $ MEndLine
-getBinding (KChar '0') Normal = Just . MoveCursors $ MStartLine
--- getBinding (KChar 'g') Normal = Just . MoveCursors $ MStartContent
-getBinding (KChar 'g') Normal = Just . MoveCursors $ MBackwardHalfScreen
--- getBinding (KChar 'G') Normal = Just . MoveCursors $ MEndContent
-getBinding (KChar 'G') Normal = Just . MoveCursors $ MForwardHalfScreen
-getBinding (KChar 'i') Normal = Just . SetMode $ Insert
-getBinding (KChar ';') Normal = Just . SetMode $ Command
-getBinding (KChar 'm') Normal = Just MarkPhantom
-getBinding (KChar 's') Normal = Just CreatePhantoms
-getBinding KEsc        Normal = Just RemoveCursors
+import Data.Maybe (fromMaybe, listToMaybe)
+import Data.List (find)
 
-getBinding KEsc        Insert = Just . SetMode $ Normal
-getBinding (KChar c)   Insert = Just . InsertChar $ c
-getBinding KBackspace  Insert = Just DeleteChar
-getBinding KEnter      Insert = Just BreakLine
 
-getBinding KEsc        Command = Just . SetMode $ Normal
-getBinding (KChar c)   Command = Just . InsertCharConsole $ c
-getBinding KEnter      Command = Just ExecuteConsole
-getBinding KBackspace  Command = Just DeleteCharConsole
+type Binding = (Mode, [Key], Action)
 
-getBinding _ _ = Nothing
+
+bindings :: [Binding]
+bindings =
+  [ (Normal, [KChar 'h'], MoveCursors MLeft)
+  , (Normal, [KChar 'l'], MoveCursors MRight)
+  , (Normal, [KChar 'k'], MoveCursors MTop)
+  , (Normal, [KChar 'j'], MoveCursors MBottom)
+
+  , (Normal, [KChar 'w'], MoveCursors MForwardWord)
+  , (Normal, [KChar 'e'], MoveCursors MForwardEndWord)
+  , (Normal, [KChar 'b'], MoveCursors MBackwardWord)
+
+  , (Normal, [KChar '$'], MoveCursors MEndLine)
+  , (Normal, [KChar '0'], MoveCursors MStartLine)
+
+  , (Normal, [KChar 'g', KChar 'g'  ], MoveCursors MStartContent)
+  , (Normal, [KChar 'G'], MoveCursors MEndContent)
+
+  , (Normal, [KChar 'D'], MoveCursors MForwardHalfScreen)
+  , (Normal, [KChar 'U'], MoveCursors MBackwardHalfScreen)
+
+  , (Normal, [KChar 'i'], SetMode Insert)
+  , (Normal, [KChar ';'], SetMode Command)
+  , (Normal, [KChar 'm'], MarkPhantom)
+  , (Normal, [KChar 's'], CreatePhantoms)
+  , (Normal, [KEsc], RemoveCursors)
+
+  , (Insert, [KEsc], SetMode Normal)
+  , (Insert, [KBackspace], DeleteChar)
+  , (Insert, [KEnter], BreakLine)
+
+  , (Command,[KEsc],  SetMode Normal)
+  , (Command,[KEnter],  ExecuteConsole)
+  , (Command,[KBackspace],  DeleteCharConsole)
+  ]
+
+
+data CommandState =
+  KeepGoing
+  | None
+  | Found Action
+  deriving (Show, Eq)
+
+
+getBinding :: Mode -> [Key] -> CommandState
+getBinding mode keys =
+  fromMaybe (fromMaybe None $ find byKeepGoing states) $ find byFound states
+    where
+      states :: [CommandState]
+      states =
+        checkBinding keys <$> filter byMode bindings
+
+      checkBinding :: [Key] -> Binding -> CommandState
+      checkBinding [] (_, [], action) = Found action
+      checkBinding [] (_, (x:xs), _) = KeepGoing
+      checkBinding (y:ys) (mode, (x:xs), action) =
+        if x == y
+          then
+            checkBinding ys (mode, xs, action)
+          else
+            None
+
+      byFound :: CommandState -> Bool
+      byFound (Found _) = True
+      byFound _ = False
+
+      byKeepGoing :: CommandState -> Bool
+      byKeepGoing KeepGoing = True
+      byKeepGoing _ = False
+
+      byMode :: Binding -> Bool
+      byMode (item, _, _) =
+        item == mode
 
 
 -- TODO: add parser for command
@@ -56,3 +105,5 @@ getCommand cmd =
 
     _ ->
       Nothing
+
+

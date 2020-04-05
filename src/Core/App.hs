@@ -28,12 +28,32 @@ import Core.App.Data
 
 handle :: Monad m => FsService m -> Key -> App -> m App
 handle fsService key app =
-  case Config.getBinding key (getMode app) of
-    Just action ->
-      interpretAction fsService action app
+  case Config.getBinding (getMode app1) (getCommandAcc app1) of
+    Config.Found action ->
+      interpretAction fsService action app2
 
-    Nothing ->
+    Config.KeepGoing ->
+      return app1
+
+    Config.None ->
+      defaultHandle fsService key app2
+  where
+    app1 = pushCommandAcc key app
+    app2 = clearCommandAcc app1
+
+
+defaultHandle :: Monad m => FsService m -> Key -> App -> m App
+defaultHandle fsService (KChar c) app =
+  case getMode app of
+    Insert ->
+      interpretAction fsService (InsertChar c) app
+    Command ->
+      interpretAction fsService (InsertCharConsole c) app
+    _ ->
       return app
+
+defaultHandle _ _ app =
+  return app
 
 
 handleIO :: Key -> App -> IO App

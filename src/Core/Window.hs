@@ -36,26 +36,13 @@ removeCursors =
 
 moveCursors :: Movement -> Window -> Window
 moveCursors Movement.MForwardHalfScreen window =
-  modifyRect doView
-  .  modifyCursors doModify
+  moveViewY half
+  .  modifyCursorsByContent doModify
   $ window
     where
-      doModify :: [Cursor] -> [Cursor]
-      doModify =
+      doModify :: [String] -> [Cursor] -> [Cursor]
+      doModify content =
         filterSameCursors . fmap (Movement.forwardRow half content)
-
-      doView :: Rect -> Rect
-      doView =
-        Rect.translate newRectRow 0
-
-      newRectRow =
-        crop 0 (length content - height) (rectRow + half)
-
-      rectRow =
-        Rect.getRow . getRect $ window
-
-      content =
-        getContent window
 
       half =
         height `div` 2
@@ -63,28 +50,14 @@ moveCursors Movement.MForwardHalfScreen window =
       height =
         Rect.getHeight . getRect $ window
 
--- TODO: refactoring, almost same as previous
 moveCursors Movement.MBackwardHalfScreen window =
-  modifyRect doView
-  .  modifyCursors doModify
+  moveViewY (-half)
+  .  modifyCursorsByContent doModify
   $ window
     where
-      doModify :: [Cursor] -> [Cursor]
-      doModify =
+      doModify :: [String] -> [Cursor] -> [Cursor]
+      doModify content =
         filterSameCursors . fmap (Movement.backwardRow half content)
-
-      doView :: Rect -> Rect
-      doView =
-        Rect.translate newRectRow 0
-
-      newRectRow =
-        crop 0 (length content - height) (rectRow - half)
-
-      rectRow =
-        Rect.getRow . getRect $ window
-
-      content =
-        getContent window
 
       half =
         height `div` 2
@@ -285,6 +258,34 @@ modifyGroupedCursorsByContent f window =
 modifyContentByGroupedCursors :: ([[Cursor]] -> [String] -> [String]) -> Window -> Window
 modifyContentByGroupedCursors f window =
   modifyContent (f $ getGroupedCursors window) window
+
+
+moveViewY :: Int -> Window -> Window
+moveViewY y window =
+  modifyRect doView window
+    where
+      doView :: Rect -> Rect
+      doView =
+        Rect.translate newRectRow 0
+
+      newRectRow =
+        if length content < height
+          then
+            rectRow
+          else
+            crop 0 (length content - height) (rectRow + y)
+
+      rectRow =
+        Rect.getRow . getRect $ window
+
+      content =
+        getContent window
+
+      half =
+        height `div` 2
+
+      height =
+        Rect.getHeight . getRect $ window
 
 
 fitViewByMovement :: Movement -> Window -> Window

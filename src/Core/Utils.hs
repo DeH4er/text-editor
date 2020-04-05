@@ -8,8 +8,17 @@ module Core.Utils
   , mapIndex
   , mapCollect
   , removeDuplicates
+  , removeRange
+  , Modify
+  , Content
   )
   where
+
+
+type Modify a = a -> a
+
+
+type Content = [String]
 
 
 crop :: Int -> Int -> Int -> Int
@@ -43,9 +52,13 @@ removeAt 0 (x:xs) = xs
 removeAt i (x:xs) = x : removeAt (i - 1) xs
 
 
-inRange :: Int -> Int -> Int -> Bool
-inRange min max val =
-  val >= min && val <= max
+removeRange :: Int -> Int -> [a] -> [a]
+removeRange start end xs =
+  if start == end
+    then
+      removeAt start xs
+    else
+      take start xs <> drop (end + 1) xs
 
 
 mapIndex :: (Int -> a -> b) -> [a] -> [b]

@@ -8,6 +8,7 @@ where
 import Core.Mode
 import Core.Event
 import Core.Movement
+import Core.Deletion
 
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.List (find)
@@ -42,6 +43,9 @@ bindings =
   , (Normal, [KChar 's'], CreatePhantoms)
   , (Normal, [KEsc], RemoveCursors)
 
+  , (Normal, [KChar 'd', KChar 'w'], Delete MForwardWord)
+
+  , (Insert, [KChar 'j', KChar 'k'], SetMode Normal)
   , (Insert, [KEsc], SetMode Normal)
   , (Insert, [KBackspace], DeleteChar)
   , (Insert, [KEnter], BreakLine)

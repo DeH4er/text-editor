@@ -7,15 +7,18 @@ module Core.Movement
   , forwardEndWord
   , endLine
   , startLine
+  , isLastRow
+  , isLastCol
   , Movement (..)
   )
 where
-
 
 import qualified Core.Cursor as Cursor
 import Core.Cursor (Cursor, Row, Col)
 
 import qualified Core.Utils as Utils
+import Core.Utils (Content, Modify)
+
 import Data.Maybe (fromMaybe)
 import Control.Applicative ((<|>))
 
@@ -35,12 +38,6 @@ data Movement =
   | MForwardHalfScreen
   | MBackwardHalfScreen
   deriving (Show, Eq)
-
-
-type Content = [String]
-
-
-type Modify a = a -> a
 
 
 move :: Movement -> Content -> Modify Cursor
@@ -272,6 +269,11 @@ findNonSpace col str = do
 isLastRow :: Content -> Cursor -> Bool
 isLastRow content cursor =
   length content - 1 == Cursor.getRow cursor
+
+
+isLastCol :: Content -> Cursor -> Bool
+isLastCol content cursor =
+  length (content !! Cursor.getRow cursor) == Cursor.getCol cursor
 
 
 isFirstRow :: Cursor -> Bool

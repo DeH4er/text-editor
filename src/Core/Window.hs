@@ -1,5 +1,6 @@
 module Core.Window
-  ( moveCursors
+  (moveCursors
+  , deleteContent
   , insertChar
   , breakLine
   , deleteChar
@@ -28,10 +29,22 @@ import Core.Window.Data
 import qualified Core.Movement as Movement
 import Core.Movement (Movement)
 
+import qualified Core.Deletion as Deletion
+
 
 removeCursors :: Window -> Window
 removeCursors =
   modifyAdditionalCursors $ const []
+
+
+deleteContent :: Movement -> Window -> Window
+deleteContent movement window =
+  modifyCursors (\cs -> [newCursor])
+  . modifyContent (const newContent)
+  $ window
+  where
+    (newContent, newCursor) =
+      Deletion.delete movement (getContent window) (getMainCursor window)
 
 
 moveCursors :: Movement -> Window -> Window
